@@ -23,6 +23,7 @@ from decimal import Decimal, InvalidOperation
 from getpass import getpass
 import re
 import shutil
+import sys
 import textwrap
 
 import mysql.connector
@@ -36,10 +37,21 @@ RECORDS = {
 }
 
 
+def clear_screen():
+    """Clear an interactive terminal without affecting redirected output."""
+    if sys.stdin.isatty() and sys.stdout.isatty():
+        print("\033[2J\033[H", end="")
+
+
 def print_heading(title):
-    """Print a simple divider around a screen or section title."""
+    """Print a simple section heading without clearing useful context."""
     divider = "-" * (len(title) + 4)
     print(f"\n{divider}\n  {title}\n{divider}")
+
+
+def pause_for_menu():
+    """Leave action results on screen until the user is ready to continue."""
+    input("\nPress Enter to continue...")
 
 
 # DATABASE SETUP
@@ -435,6 +447,7 @@ def manage_cars(connection):
         "4": delete_car,
     }
     while True:
+        clear_screen()
         print_heading("CARS MENU")
         print("1 View | 2 Add | 3 Update | 4 Delete | 0 Back")
         choice = input("Choose an option: ").strip()
@@ -443,13 +456,16 @@ def manage_cars(connection):
         action = actions.get(choice)
         if action:
             action(connection)
+            pause_for_menu()
         else:
             print("Choose 1, 2, 3, 4, or 0.")
+            pause_for_menu()
 
 
 def manage_records(connection, table):
     title = RECORDS[table][2].upper()
     while True:
+        clear_screen()
         print_heading(f"{title} MENU")
         print("1 View | 2 Add | 3 Update | 4 Delete | 0 Back")
         choice = input("Choose an option: ").strip()
@@ -465,6 +481,7 @@ def manage_records(connection, table):
             delete_record(connection, table)
         else:
             print("Choose 1, 2, 3, 4, or 0.")
+        pause_for_menu()
 
 
 def main():
@@ -497,8 +514,8 @@ def main():
         return
 
     try:
-        print_heading("CAR COMPANY DATABASE")
         while True:
+            clear_screen()
             print_heading("MAIN MENU")
             print("1 Cars | 2 Production | 3 Sales")
             print("4 Summary | 0 Exit")
@@ -512,11 +529,13 @@ def main():
                     manage_records(connection, "sales")
                 elif choice == "4":
                     show_summary(connection)
+                    pause_for_menu()
                 elif choice == "0":
                     print("Goodbye.")
                     break
                 else:
                     print("Choose 1, 2, 3, 4, or 0.")
+                    pause_for_menu()
             except Error as error:
                 # A failed query returns the user to the menu instead of ending the program.
                 print("Database operation failed.")
@@ -526,6 +545,7 @@ def main():
                 except Error:
                     print("The database connection was lost. Exiting the program.")
                     break
+                pause_for_menu()
     except (KeyboardInterrupt, EOFError):
         print("\nGoodbye.")
     finally:

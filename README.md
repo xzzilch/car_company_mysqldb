@@ -113,6 +113,11 @@ Run the program from its folder:
 python car_company.py
 ```
 
+In an interactive terminal, each menu redraw clears the previous menu. Lists
+shown during an add or update stay on screen while you enter values. After an
+action, press Enter to read its result and return to the menu. Screen clearing
+is skipped when output is redirected.
+
 At startup, enter the MySQL host and username. Press Enter to accept the
 suggested host (`localhost`), username (`root`), or database name
 (`car_company`). Enter the MySQL password when prompted; the password is not
@@ -151,8 +156,8 @@ model.
 The examples below show a fresh database and sample inputs. Text in square
 brackets is an explanation, not something to type. The password is not echoed
 by the terminal. Automatically assigned IDs can differ if the database already
-contains records. Repeated menu redraws between actions are omitted where
-they do not change the example.
+contains records. Repeated menu redraws and "Press Enter to continue" prompts
+are omitted where they do not change the example.
 
 ### Start and Add a Car
 
@@ -168,10 +173,6 @@ MySQL password (press Enter if none): [press Enter; input stays hidden]
 Database name [car_company]: [press Enter]
 
 Database setup complete. The database is ready.
-
-------------------------
-  CAR COMPANY DATABASE
-------------------------
 
 -------------
   MAIN MENU

@@ -43,6 +43,11 @@ class FakeStartupConnection:
         self.closed = True
 
 
+class FakeTerminal(io.StringIO):
+    def isatty(self):
+        return True
+
+
 class InputValidationTests(unittest.TestCase):
     def test_integer_rejects_values_outside_mysql_int_range(self):
         with patch("builtins.input", side_effect=["2147483648", "7"]):
@@ -70,6 +75,33 @@ class SummaryTests(unittest.TestCase):
         self.assertIn("City LX | Produced 120", output.getvalue())
         self.assertIn("Produced 120", output.getvalue())
         self.assertIn("Sold 35", output.getvalue())
+        self.assertNotIn("\033", output.getvalue())
+
+    def test_screen_clear_runs_only_for_interactive_terminal(self):
+        output = FakeTerminal()
+        input_terminal = FakeTerminal()
+        with patch("car_company.sys.stdout", output):
+            with patch("car_company.sys.stdin", input_terminal):
+                car_company.clear_screen()
+
+        self.assertEqual(output.getvalue(), "\033[2J\033[H")
+
+    def test_screen_clear_is_skipped_when_output_is_redirected(self):
+        output = io.StringIO()
+        with patch("car_company.sys.stdout", output):
+            with patch("car_company.sys.stdin", FakeTerminal()):
+                car_company.clear_screen()
+
+        self.assertEqual(output.getvalue(), "")
+
+    def test_heading_does_not_clear_context(self):
+        output = io.StringIO()
+        with patch.object(car_company, "clear_screen") as clear_screen:
+            with contextlib.redirect_stdout(output):
+                car_company.print_heading("CARS")
+
+        clear_screen.assert_not_called()
+        self.assertIn("CARS", output.getvalue())
 
 
 class StartupCleanupTests(unittest.TestCase):
