@@ -159,30 +159,31 @@ they do not change the example.
 ```text
 $ python car_company.py
 
-Database connection
+-----------------------
+  DATABASE CONNECTION
+-----------------------
 MySQL host [localhost]: [press Enter]
 MySQL username [root]: [press Enter]
 MySQL password (press Enter if none): [press Enter; input stays hidden]
 Database name [car_company]: [press Enter]
 
-Database is ready.
+Database setup complete. The database is ready.
 
-CAR COMPANY DATABASE
+------------------------
+  CAR COMPANY DATABASE
+------------------------
 
-MAIN MENU
-1  Manage cars
-2  Manage production records
-3  Manage sales records
-4  Production and sales summary
-0  Exit
+-------------
+  MAIN MENU
+-------------
+1 Cars | 2 Production | 3 Sales
+4 Summary | 0 Exit
 Choose an option: 1
 
-CARS MENU
-1  View cars
-2  Add a car
-3  Update a car
-4  Delete a car
-0  Back
+-------------
+  CARS MENU
+-------------
+1 View | 2 Add | 3 Update | 4 Delete | 0 Back
 Choose an option: 2
 Car model: City LX
 Price (Rs.): 1250000.00
@@ -197,27 +198,23 @@ Continuing the same run, choose `0` to return to the main menu, then choose
 ```text
 Choose an option: 0
 
-MAIN MENU
-1  Manage cars
-2  Manage production records
-3  Manage sales records
-4  Production and sales summary
-0  Exit
+-------------
+  MAIN MENU
+-------------
+1 Cars | 2 Production | 3 Sales
+4 Summary | 0 Exit
 Choose an option: 2
 
-PRODUCTION MENU
-1  View records
-2  Add a record
-3  Update a record
-4  Delete a record
-0  Back
+-------------------
+  PRODUCTION MENU
+-------------------
+1 View | 2 Add | 3 Update | 4 Delete | 0 Back
 Choose an option: 2
 
-CARS
-Car ID: 1
-Model: City LX
-Price: Rs. 1250000.00
-
+--------
+  CARS
+--------
+ID 1 | City LX | Rs. 1250000.00
 Car ID: 1
 Date (YYYY-MM-DD) [today]: 2026-10-23
 Quantity: 120
@@ -232,27 +229,23 @@ record. This example uses the same car:
 ```text
 Choose an option: 0
 
-MAIN MENU
-1  Manage cars
-2  Manage production records
-3  Manage sales records
-4  Production and sales summary
-0  Exit
+-------------
+  MAIN MENU
+-------------
+1 Cars | 2 Production | 3 Sales
+4 Summary | 0 Exit
 Choose an option: 3
 
-SALES MENU
-1  View records
-2  Add a record
-3  Update a record
-4  Delete a record
-0  Back
+--------------
+  SALES MENU
+--------------
+1 View | 2 Add | 3 Update | 4 Delete | 0 Back
 Choose an option: 2
 
-CARS
-Car ID: 1
-Model: City LX
-Price: Rs. 1250000.00
-
+--------
+  CARS
+--------
+ID 1 | City LX | Rs. 1250000.00
 Car ID: 1
 Date (YYYY-MM-DD) [today]: 2026-10-23
 Quantity: 35
@@ -267,21 +260,20 @@ production and sales records above, the output is:
 ```text
 Choose an option: 0
 
-MAIN MENU
-1  Manage cars
-2  Manage production records
-3  Manage sales records
-4  Production and sales summary
-0  Exit
+-------------
+  MAIN MENU
+-------------
+1 Cars | 2 Production | 3 Sales
+4 Summary | 0 Exit
 Choose an option: 4
 
-PRODUCTION AND SALES SUMMARY
-Model: City LX
-Produced: 120
-Sold: 35
+--------------------------------
+  PRODUCTION AND SALES SUMMARY
+--------------------------------
+City LX | Produced 120 | Sold 35
 ```
 
-If no sales entry exists for a car, the summary displays `Sold: 0` instead.
+If no sales entry exists for a car, the summary displays `Sold 0` instead.
 
 ## Example Queries
 

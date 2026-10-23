@@ -36,10 +36,16 @@ RECORDS = {
 }
 
 
+def print_heading(title):
+    """Print a simple divider around a screen or section title."""
+    divider = "-" * (len(title) + 4)
+    print(f"\n{divider}\n  {title}\n{divider}")
+
+
 # DATABASE SETUP
 def connect_to_database():
     """Ask for MySQL settings, create the selected database, and connect."""
-    print("\nDatabase connection")
+    print_heading("DATABASE CONNECTION")
     host = input("MySQL host [localhost]: ").strip() or "localhost"
     user = input("MySQL username [root]: ").strip() or "root"
     password = getpass("MySQL password (press Enter if none): ")
@@ -189,15 +195,12 @@ def fetch_cars(connection):
 def show_cars(connection):
     """Display all cars and return their rows for later ID selection."""
     rows = fetch_cars(connection)
-    print("\nCARS")
+    print_heading("CARS")
     if not rows:
         print("No cars found yet.")
         return rows
     for car_id, model, price in rows:
-        print(f"Car ID: {car_id}")
-        print(f"Model: {model}")
-        print(f"Price: Rs. {price}")
-        print()
+        print(f"ID {car_id} | {model} | Rs. {price}")
     return rows
 
 
@@ -294,17 +297,15 @@ def show_records(connection, table):
     finally:
         cursor.close()
 
-    print(f"\n{title.upper()} RECORDS")
+    print_heading(f"{title.upper()} RECORDS")
     if not rows:
         print(f"No {table} records found yet.")
         return rows
     for record_id, car_id, model, record_date, quantity in rows:
-        print(f"Record ID: {record_id}")
-        print(f"Car ID: {car_id}")
-        print(f"Model: {model}")
-        print(f"Date: {record_date}")
-        print(f"Quantity: {quantity}")
-        print()
+        print(
+            f"ID {record_id} | Car {car_id} | {model} | "
+            f"{record_date} | Qty {quantity}"
+        )
     return rows
 
 
@@ -410,7 +411,7 @@ def get_totals(connection, table):
 
 def show_summary(connection):
     cars = fetch_cars(connection)
-    print("\nPRODUCTION AND SALES SUMMARY")
+    print_heading("PRODUCTION AND SALES SUMMARY")
     if not cars:
         print("No cars found yet.")
         return
@@ -418,10 +419,10 @@ def show_summary(connection):
     sold = get_totals(connection, "sales")
     for car_id, model, _ in cars:
         # A car without entries is still shown, with its missing total displayed as zero.
-        print(f"Model: {model}")
-        print(f"Produced: {produced.get(car_id, 0)}")
-        print(f"Sold: {sold.get(car_id, 0)}")
-        print()
+        print(
+            f"{model} | Produced {produced.get(car_id, 0)} | "
+            f"Sold {sold.get(car_id, 0)}"
+        )
 
 
 # MENU AND PROGRAM FLOW
@@ -434,12 +435,8 @@ def manage_cars(connection):
         "4": delete_car,
     }
     while True:
-        print("\nCARS MENU")
-        print("1  View cars")
-        print("2  Add a car")
-        print("3  Update a car")
-        print("4  Delete a car")
-        print("0  Back")
+        print_heading("CARS MENU")
+        print("1 View | 2 Add | 3 Update | 4 Delete | 0 Back")
         choice = input("Choose an option: ").strip()
         if choice == "0":
             return
@@ -453,12 +450,8 @@ def manage_cars(connection):
 def manage_records(connection, table):
     title = RECORDS[table][2].upper()
     while True:
-        print(f"\n{title} MENU")
-        print("1  View records")
-        print("2  Add a record")
-        print("3  Update a record")
-        print("4  Delete a record")
-        print("0  Back")
+        print_heading(f"{title} MENU")
+        print("1 View | 2 Add | 3 Update | 4 Delete | 0 Back")
         choice = input("Choose an option: ").strip()
         if choice == "0":
             return
@@ -480,7 +473,7 @@ def main():
         connection = connect_to_database()
         # Create missing tables on every start; existing data is left unchanged.
         create_tables(connection)
-        print("\nDatabase is ready.")
+        print("\nDatabase setup complete. The database is ready.")
     except (Error, ValueError) as error:
         print("Could not start the database project.")
         show_error_details(error)
@@ -504,14 +497,11 @@ def main():
         return
 
     try:
-        print("\nCAR COMPANY DATABASE")
+        print_heading("CAR COMPANY DATABASE")
         while True:
-            print("\nMAIN MENU")
-            print("1  Manage cars")
-            print("2  Manage production records")
-            print("3  Manage sales records")
-            print("4  Production and sales summary")
-            print("0  Exit")
+            print_heading("MAIN MENU")
+            print("1 Cars | 2 Production | 3 Sales")
+            print("4 Summary | 0 Exit")
             choice = input("Choose an option: ").strip()
             try:
                 if choice == "1":

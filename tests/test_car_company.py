@@ -67,9 +67,9 @@ class SummaryTests(unittest.TestCase):
         with contextlib.redirect_stdout(output):
             car_company.show_summary(FakeConnection())
 
-        self.assertIn("Model: City LX", output.getvalue())
-        self.assertIn("Produced: 120", output.getvalue())
-        self.assertIn("Sold: 35", output.getvalue())
+        self.assertIn("City LX | Produced 120", output.getvalue())
+        self.assertIn("Produced 120", output.getvalue())
+        self.assertIn("Sold 35", output.getvalue())
 
 
 class StartupCleanupTests(unittest.TestCase):
