@@ -100,10 +100,9 @@ Install the connector from a terminal:
 python -m pip install -r requirements.txt
 ```
 
-The repository also includes `.gitignore` to exclude local environments,
-Python cache files, and local secret files. See [project_report.md](project_report.md)
-for a school-submission report template. Fill in its personal details and
-replace sample results with your own actual test results before submitting.
+See [project_report.md](project_report.md) for a school-submission report
+template. Fill in its personal details and replace sample results with your own
+actual test results before submitting.
 
 ## Running the Project
 
@@ -113,10 +112,10 @@ Run the program from its folder:
 python car_company.py
 ```
 
-In an interactive terminal, each menu redraw clears the previous menu. Lists
-shown during an add or update stay on screen while you enter values. After an
-action, press Enter to read its result and return to the menu. Screen clearing
-is skipped when output is redirected.
+When both input and output use an interactive terminal, each menu redraw clears
+the previous menu. Lists shown during an add or update stay on screen while you
+enter values. After an action, press Enter to read its result and return to the
+menu. Screen clearing is skipped in non-interactive use.
 
 At startup, enter the MySQL host and username. Press Enter to accept the
 suggested host (`localhost`), username (`root`), or database name
@@ -171,8 +170,6 @@ MySQL host [localhost]: [press Enter]
 MySQL username [root]: [press Enter]
 MySQL password (press Enter if none): [press Enter; input stays hidden]
 Database name [car_company]: [press Enter]
-
-Database setup complete. The database is ready.
 
 -------------
   MAIN MENU
@@ -327,9 +324,9 @@ multiple rows for the same car. The summary is not a current-stock report.
   the relationship.
 - View the summary and compare its totals with the entries entered.
 
-The automated input-validation and summary-report tests use Python's built-in
-`unittest` module and do not need a running MySQL server. Run them from the
-project folder:
+The automated tests cover input validation, summary output, screen handling,
+and startup cleanup. They use Python's built-in `unittest` module and do not
+need a running MySQL server. Run them from the project folder:
 
 ```text
 python -m unittest discover -s tests

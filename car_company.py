@@ -129,7 +129,7 @@ def read_positive_integer(message):
                 return value
         except ValueError:
             pass
-        print("Enter a whole number from 1 to 2,147,483,647.")
+        print("Enter a whole number from 1 through 2,147,483,647.")
 
 
 def read_price(message):
@@ -168,7 +168,7 @@ def read_existing_id(message, valid_ids):
         value = input(message).strip()
         if value in allowed_ids:
             return int(value)
-        print("Enter an ID from the list above.")
+        print("Choose an ID shown in the list above.")
 
 
 def read_date(message, default_today=False):
@@ -264,7 +264,7 @@ def update_car(connection):
 def confirm_delete():
     # Deletion cannot proceed unless the user explicitly enters y.
     while True:
-        answer = input("Delete permanently? (y/n): ").strip().lower()
+        answer = input("Delete the selected item permanently? (y/n): ").strip().lower()
         if answer in ("y", "n"):
             return answer == "y"
         print("Please enter y or n.")
@@ -315,8 +315,8 @@ def show_records(connection, table):
         return rows
     for record_id, car_id, model, record_date, quantity in rows:
         print(
-            f"ID {record_id} | Car {car_id} | {model} | "
-            f"{record_date} | Qty {quantity}"
+            f"Record ID: {record_id} | Car ID: {car_id} | {model} | "
+            f"Date: {record_date} | Quantity: {quantity}"
         )
     return rows
 
@@ -360,7 +360,7 @@ def update_record(connection, table):
     if not cars:
         return
     car_ids = (car[0] for car in cars)
-    car_id = read_existing_id("New car ID: ", car_ids)
+    car_id = read_existing_id("Choose the new car ID: ", car_ids)
     record_date = read_date("New date (YYYY-MM-DD): ")
     quantity = read_positive_integer("New quantity: ")
 
@@ -490,7 +490,6 @@ def main():
         connection = connect_to_database()
         # Create missing tables on every start; existing data is left unchanged.
         create_tables(connection)
-        print("\nDatabase setup complete. The database is ready.")
     except (Error, ValueError) as error:
         print("Could not start the database project.")
         show_error_details(error)
@@ -554,7 +553,7 @@ def main():
                 if connection.is_connected():
                     connection.close()
             except Error:
-                print("The database connection could not be closed cleanly.")
+                print("Could not close the database connection cleanly.")
 
 
 if __name__ == "__main__":
