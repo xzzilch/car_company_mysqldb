@@ -2,6 +2,8 @@
 
 This guide explains the ideas and functions used by the Car Company Database program. It is written for a beginner and follows the program's actual design. The program stores records in MySQL; it does not save car data in a local project file.
 
+**Project documents:** [README](README.md) · [CBSE project report](project_report.md)
+
 ## Contents
 
 1. [Python](#python)
@@ -12,7 +14,10 @@ This guide explains the ideas and functions used by the Car Company Database pro
 6. [Program Functions](#program-functions)
 7. [Imported Modules and Functions](#imported-modules-and-functions)
 8. [Useful Built-in Functions and Methods](#useful-built-in-functions-and-methods)
-9. [Program Flow](#program-flow)
+9. [Test Helpers](#test-helpers)
+10. [Reading the Code](#reading-the-code)
+11. [Program Flow](#program-flow)
+12. [Further Reading](#further-reading)
 
 ## Python
 
@@ -70,7 +75,7 @@ A MySQL-specific part of this project is `AUTO_INCREMENT`. The connector's `%s` 
 
 ### Required software
 
-- **Python:** Python 3.8 or newer is recommended. The installed MySQL Connector/Python release must support the installed Python version.
+- **Python:** The source uses Python 3.8 or newer syntax. Choose a MySQL Connector/Python release that supports your installed Python version; connector releases can have different minimum versions.
 - **MySQL Server:** MySQL 8.0 or a compatible MySQL server, installed locally or reachable over a network.
 - **Python package:** `mysql-connector-python`, installed from `requirements.txt`.
 - **Terminal:** Windows Terminal/PowerShell, Command Prompt, macOS Terminal, or a Linux terminal.
@@ -224,48 +229,95 @@ The foreign keys prevent inserting production or sales for a car that does not e
 
 These are the functions defined in `car_company.py`, grouped by what the program does.
 
+### How the Python file is organized
+
+- [Module description](car_company.py#L1) states the program's purpose, dependencies, and startup behavior.
+- [Imports](car_company.py#L21) bring in date and decimal handling, password input, operating-system and terminal helpers, text formatting, and the MySQL connector. Only `mysql-connector-python` is an external package.
+- [`DATABASE_DEFAULT` and `RECORDS`](car_company.py#L33) hold shared configuration. `RECORDS` maps the two supported record types to their ID column, date column, and display name. SQL table and column names are selected from this fixed mapping rather than typed by the user.
+- The remainder of the file is arranged into terminal helpers, database setup, input validation, car operations, production/sales operations, summary reporting, and menu flow.
+
+### Important Python constructs
+
+- **Tuples and unpacking:** [`RECORDS`](car_company.py#L35) stores each record type as a tuple. Functions unpack a tuple into named fields, for example `id_column, date_column, title = RECORDS[table]`. This keeps the production and sales workflows shared without duplicating whole functions.
+- **Dictionaries:** `settings` in [`connect_to_database()`](car_company.py#L59) holds connection options by name. `produced` and `sold` in [`show_summary()`](car_company.py#L426) map car IDs to totals, allowing `.get(car_id, 0)` to provide a missing total as zero.
+- **Generator expressions:** expressions such as `(car[0] for car in cars)` pass car IDs to [`read_existing_id()`](car_company.py#L165) without creating another list.
+- **F-strings:** prompts, headings, and SQL statements use f-strings to insert values into text. In SQL, user data still goes through connector placeholders; only fixed identifiers selected from `RECORDS` are put into the SQL text.
+- **`try`, `except`, and `finally`:** `try` contains an operation that may fail, `except` handles a known error, and `finally` runs cleanup such as closing a cursor regardless of success or failure.
+- **The `__main__` guard:** the final [`if __name__ == "__main__"` block](car_company.py#L580) starts `main()` only when this file is run directly. Importing the module from tests defines its functions without opening the menu.
+
+### Source-code map
+
+These are sections of one Python file, not separate modules. Use the linked definition for the exact location of each function.
+
+| Source section | Purpose |
+| --- | --- |
+| [Imports and shared settings](car_company.py#L21) | Dependencies, default database name, and production/sales configuration. |
+| [Terminal helpers](car_company.py#L41) | Screen clearing, headings, and the pause prompt. |
+| [Database setup](car_company.py#L59) | Connection prompts, database creation, and table definitions. |
+| [Input validation](car_company.py#L124) | Integer, price, model, ID, and date checks. |
+| [Car operations](car_company.py#L199) | Select, display, add, update, and delete cars. |
+| [Production and sales operations](car_company.py#L299) | Joined record display and shared record CRUD. |
+| [Summary report](car_company.py#L414) | Group totals and the cars-left calculation. |
+| [Menu and startup flow](car_company.py#L462) | Section menus, main menu, cleanup, and direct execution. |
+
+### Data passed between functions
+
+The MySQL connector returns rows as tuples. A car row has the shape `(car_id, model, price)`, and a production or sales row has the shape `(record_id, car_id, model, date, quantity)`. Functions unpack these tuples into names so each printed field is clear. The menu functions pass the database `connection` to the operation functions; the connection is shared for the whole run, while each query creates and closes its own cursor.
+
 ### Terminal and connection
 
-- **`clear_screen()`** checks that standard input and output are terminals. It then uses `os.system()` to call `cls` on Windows or `clear` on other systems. Redirected output is not cleared.
-- **`print_heading(title)`** prints a heading with a divider sized to the title.
-- **`pause_for_menu()`** waits for Enter so the user can read an operation's result before the next menu.
-- **`connect_to_database()`** reads connection details, checks the database name, creates the database if needed, and returns a connection to it.
-- **`create_tables(connection)`** creates the three tables if they do not already exist and commits the schema changes.
+- **[`clear_screen()`](car_company.py#L41)** checks `stdin` and `stdout` with `isatty()`. It runs `cls` on Windows or `clear` elsewhere only for an interactive terminal; redirected output is left untouched.
+- **[`print_heading(title)`](car_company.py#L47)** calculates a divider from the title length and prints the title between divider lines.
+- **[`pause_for_menu()`](car_company.py#L53)** waits for Enter after an action so its output is not immediately replaced by the next menu.
+- **[`connect_to_database()`](car_company.py#L59)** asks for host, user, password, and database. It accepts the documented defaults, validates the database identifier against letters, digits, and underscores, opens a server connection to create the database if needed, closes that temporary connection, then returns a connection scoped to the chosen database. The MySQL account therefore needs database/table creation permission.
+- **[`create_tables(connection)`](car_company.py#L87)** issues three `CREATE TABLE IF NOT EXISTS` statements, adds the primary-key, uniqueness, and foreign-key rules, commits the schema transaction, and closes its cursor even if an error occurs.
+
+The schema is described field-by-field in [Database Tables](#database-tables). The `cars` table is created first because `production.car_id` and `sales.car_id` refer to its primary key.
 
 ### Input checking and errors
 
-- **`read_positive_integer(message)`** repeats the prompt until it receives an integer from 1 through the MySQL signed `INT` maximum used by this program.
-- **`read_price(message)`** repeats until the input is a finite positive decimal that fits `DECIMAL(10, 2)` and has no more than two decimal places.
-- **`read_model(message)`** accepts a non-empty model name of at most 50 characters.
-- **`read_existing_id(message, valid_ids)`** accepts only an ID from the IDs in the list already displayed.
-- **`read_date(message, default_today=False)`** validates a real MySQL `DATE` value in `YYYY-MM-DD` form. When `default_today=True`, empty input means today's date.
-- **`show_error_details(error)`** prints a connector error wrapped to fit the detected terminal width, using 80 columns as a fallback.
-- **`confirm_delete()`** accepts only `y` or `n` and returns `True` only for `y`.
+- **[`read_positive_integer(message)`](car_company.py#L124)** loops until the input converts to an integer greater than zero and no larger than the signed MySQL `INT` maximum. Invalid text and out-of-range values receive the same prompt again.
+- **[`read_price(message)`](car_company.py#L136)** parses input with `Decimal`, rejects non-finite and non-positive values, checks the maximum `DECIMAL(10,2)` value, and rejects more than two fractional digits.
+- **[`read_model(message)`](car_company.py#L156)** trims surrounding whitespace and accepts only names from 1 to 50 characters, matching `VARCHAR(50)`.
+- **[`read_existing_id(message, valid_ids)`](car_company.py#L165)** converts the displayed IDs to strings and accepts only an exact listed value. This prevents selecting an ID that was not offered in the current list.
+- **[`read_date(message, default_today=False)`](car_company.py#L175)** parses an ISO `YYYY-MM-DD` date, checks that formatting is exact, and rejects dates earlier than MySQL's `1000-01-01` minimum. For new entries, `default_today=True` makes an empty response use today's date.
+- **[`show_error_details(error)`](car_company.py#L191)** converts an exception to text, detects the terminal width with an 80-column fallback, and wraps the message for display.
+- **[`confirm_delete()`](car_company.py#L266)** normalizes the response to lowercase, repeats until the user enters `y` or `n`, and returns a Boolean confirmation.
 
 ### Car operations
 
-- **`fetch_cars(connection)`** selects all car IDs, models, and prices in ID order and returns the rows.
-- **`show_cars(connection)`** prints the car list and returns the same rows for later ID validation.
-- **`add_car(connection)`** reads a model and price, inserts a car, commits on success, and rolls back and reports a connector error on failure.
-- **`update_car(connection)`** displays cars, validates the selected ID, reads replacement model and price, and updates only that row.
-- **`delete_car(connection)`** displays cars, validates the chosen ID, asks for confirmation, and deletes that car. A foreign-key error protects cars that still have production or sales rows.
+- **[`fetch_cars(connection)`](car_company.py#L199)** runs the ordered `SELECT` for `car_id`, `model`, and `price`, returns all fetched rows, and closes the cursor in `finally`.
+- **[`show_cars(connection)`](car_company.py#L209)** prints a heading and either an empty-state message or each returned car. It also returns the rows so callers can restrict ID input to visible cars.
+- **[`add_car(connection)`](car_company.py#L221)** collects validated model and price values, inserts them with `%s` placeholders, and commits. A connector error triggers rollback and an explanatory message; the cursor is always closed.
+- **[`update_car(connection)`](car_company.py#L241)** displays cars, validates the selected car ID, gathers replacement values, and updates the row selected by its primary key. It checks `rowcount` to distinguish a changed row from no match.
+- **[`delete_car(connection)`](car_company.py#L275)** displays cars, validates the ID, asks for confirmation, then deletes by primary key. A foreign-key error prevents removal if production or sales rows still refer to the car.
+
+The car operations do not manually generate IDs. MySQL's `AUTO_INCREMENT` supplies them. A model duplicate is rejected by the database's `UNIQUE` rule, and the operation catches the connector error, rolls back, and displays its details.
 
 ### Production and sales operations
 
-- **`show_records(connection, table)`** reads rows from the fixed `production` or `sales` table, joins each row to its car model, prints the results, and returns them for ID selection.
-- **`add_record(connection, table)`** lists cars, validates the selected car, reads a date and quantity, and inserts one production or sales entry.
-- **`update_record(connection, table)`** lists entries, validates the record and car IDs, reads replacement values, and updates the selected entry.
-- **`delete_record(connection, table)`** lists entries, validates the chosen ID, confirms the action, and deletes the selected entry.
-- **`get_totals(connection, table)`** runs `SUM(quantity)` grouped by car and returns a dictionary mapping each car ID to its total.
+- **[`show_records(connection, table)`](car_company.py#L299)** uses the selected fixed `RECORDS` entry to choose table/column names, joins records to `cars` for readable model names, orders by record ID, prints the rows, and returns them for later ID validation.
+- **[`add_record(connection, table)`](car_company.py#L326)** requires at least one car, accepts only a displayed car ID, reads a valid date and quantity, and inserts the row into production or sales. User values are bound separately from the SQL text.
+- **[`update_record(connection, table)`](car_company.py#L354)** requires an existing record, validates both the record ID and replacement car ID, gathers date and quantity, then updates the selected record. All editable fields are replaced together.
+- **[`delete_record(connection, table)`](car_company.py#L387)** requires an existing record and explicit confirmation before deleting by its record ID.
+- **[`get_totals(connection, table)`](car_company.py#L414)** runs `SUM(quantity)` with `GROUP BY car_id` and converts the returned `(car_id, total)` pairs into a dictionary for quick lookups.
 
-The `table` argument is expected to be one of the fixed keys in `RECORDS`; it is not free-form user input.
+The `table` argument to these shared operations must be one of the fixed `RECORDS` keys; it is not free-form user input. This is important because table and column names are interpolated into the SQL statement, while actual user values use placeholders.
+
+This is the program's CRUD pattern: create with `INSERT`, read with `SELECT`, edit with `UPDATE`, and remove with `DELETE`. Updates and deletes include a `WHERE` condition on the chosen record's primary-key ID so they affect only the selected row.
 
 ### Summary and application flow
 
-- **`show_summary(connection)`** loads cars and the two totals, treats a missing total as zero, calculates `produced - sold`, and prints the `Cars left` column. Long model names are abbreviated for alignment; negative balances remain visible.
-- **`manage_cars(connection)`** displays the car menu, dispatches the selected action, pauses after an action, and returns on option 0.
-- **`manage_records(connection, table)`** displays the production or sales menu and routes the selected action to the appropriate function.
-- **`main()`** connects to MySQL, creates missing tables, runs the main menu, handles database and keyboard errors, and closes the connection.
+- **[`show_summary(connection)`](car_company.py#L426)** loads cars and production/sales totals independently, substitutes zero for a missing total, calculates `produced - sold`, and aligns the output columns. Long labels are shortened for display only; negative totals remain visible.
+- **[`manage_cars(connection)`](car_company.py#L462)** redraws the car menu, maps choices 1-4 to view/add/update/delete, pauses after an action, and returns to the main menu on 0.
+- **[`manage_records(connection, table)`](car_company.py#L486)** uses the selected record type's display name, handles the same CRUD choices for production or sales, and returns on 0.
+- **[`main()`](car_company.py#L508)** connects and initializes tables, displays the main menu, routes choices to the correct manager or summary, handles connector and keyboard/EOF errors, rolls back a failed menu operation, and closes the connection in `finally`.
+
+`main()` has two error-handling phases. During startup it catches connection, schema, and user-interruption errors before entering the menu. During normal menu use it catches connector errors, attempts a rollback, and returns to the menu if the connection is still usable. The outer `finally` closes an open connection on normal exit or interruption.
+
+### Tests for the code paths
+
+The test module is [tests/test_car_company.py](tests/test_car_company.py). Its [`InputValidationTests`](tests/test_car_company.py#L57) check integer limits, decimal precision, date format/range, and listed IDs. [`SummaryTests`](tests/test_car_company.py#L79) cover normal, missing, and negative totals, long labels, and Windows/Unix/redirected screen clearing. [`StartupCleanupTests`](tests/test_car_company.py#L176) confirm the connection is closed if startup is interrupted. These tests use fake cursors and do not replace a live MySQL smoke test.
 
 ## Imported Modules and Functions
 
@@ -273,18 +325,18 @@ This section explains every imported module and imported API used by `car_compan
 
 | Import | Use in this program |
 | --- | --- |
-| `datetime.date` | Creates and validates calendar dates; `today()`, `fromisoformat()`, and `isoformat()` are used. |
-| `decimal.Decimal` | Parses and compares prices without binary floating-point rounding. |
-| `decimal.InvalidOperation` | Exception caught when price text is not a valid decimal. |
-| `getpass.getpass` | Reads the MySQL password without echoing the typed characters. |
-| `os.name` | Identifies the operating system (`nt` for Windows). |
-| `os.system(command)` | Runs the terminal clear command (`cls` or `clear`). |
-| `re.fullmatch(pattern, text)` | Checks that the complete database name contains only allowed letters, digits, or underscores. |
-| `shutil.get_terminal_size(fallback)` | Gets terminal width for formatting database error messages; uses the fallback if size detection fails. |
-| `sys.stdin` and `sys.stdout` | Refer to standard input and output; their `isatty()` methods identify interactive terminals. |
-| `textwrap.fill(text, width)` | Wraps long error text to a selected width. |
-| `mysql.connector.connect(**settings)` | Opens a MySQL connection using the supplied host, user, password, and optional database. |
-| `mysql.connector.Error` | Base exception used to catch connector and database errors. |
+| [`datetime.date`](car_company.py#L21) | Creates and validates calendar dates; `today()`, `fromisoformat()`, and `isoformat()` are used. |
+| [`decimal.Decimal`](car_company.py#L22) | Parses and compares prices without binary floating-point rounding. |
+| [`decimal.InvalidOperation`](car_company.py#L22) | Exception caught when price text is not a valid decimal. |
+| [`getpass.getpass`](car_company.py#L23) | Reads the MySQL password without echoing the typed characters. |
+| [`os.name`](car_company.py#L24) | Identifies the operating system (`nt` for Windows). |
+| [`os.system(command)`](car_company.py#L24) | Runs the terminal clear command (`cls` or `clear`). |
+| [`re.fullmatch(pattern, text)`](car_company.py#L25) | Checks that the complete database name contains only allowed letters, digits, or underscores. |
+| [`shutil.get_terminal_size(fallback)`](car_company.py#L26) | Gets terminal width for formatting database error messages; uses the fallback if size detection fails. |
+| [`sys.stdin` and `sys.stdout`](car_company.py#L27) | Refer to standard input and output; their `isatty()` methods identify interactive terminals. |
+| [`textwrap.fill(text, width)`](car_company.py#L28) | Wraps long error text to a selected width. |
+| [`mysql.connector.connect(**settings)`](car_company.py#L30) | Opens a MySQL connection using the supplied host, user, password, and optional database. |
+| [`mysql.connector.Error`](car_company.py#L31) | Base exception used to catch connector and database errors. |
 
 `Decimal.is_finite()` and `Decimal.as_tuple()` are methods of the decimal value, not separately imported functions. They are used to reject non-finite prices and excess decimal places.
 
@@ -323,6 +375,13 @@ The automated tests use only Python's standard library in addition to the applic
 
 The test fixtures' `execute()`, `fetchall()`, and `close()` methods imitate the small part of a MySQL cursor used by summary tests. They do not connect to a real database.
 
+- [`FakeCursor`](tests/test_car_company.py#L12) returns configured sample rows for the cars and aggregate queries.
+- [`FakeConnection`](tests/test_car_company.py#L35) creates those fake cursors and passes through production and sales totals.
+- [`FakeStartupConnection`](tests/test_car_company.py#L44) records whether startup cleanup closed a connection.
+- [`FakeTerminal`](tests/test_car_company.py#L52) behaves like an interactive terminal for screen-clear tests.
+
+The test cases are grouped by behavior: [`InputValidationTests`](tests/test_car_company.py#L57), [`SummaryTests`](tests/test_car_company.py#L79), and [`StartupCleanupTests`](tests/test_car_company.py#L188). Run them with `python -m unittest discover -s tests` from the project directory.
+
 ## Program Flow
 
 1. `main()` opens a MySQL connection and creates any missing tables.
@@ -333,6 +392,31 @@ The test fixtures' `execute()`, `fetchall()`, and `close()` methods imitate the 
 6. The summary adds production totals and sales totals separately, then computes `Cars left = Produced - Sold` for each car.
 7. On exit, `main()` closes the database connection.
 
+## Reading the Code
+
+### One database operation, step by step
+
+[`add_car()`](car_company.py#L221) is a compact example of the program's usual database pattern:
+
+1. Call [`read_model()`](car_company.py#L156) and [`read_price()`](car_company.py#L136) so values match the table's column rules.
+2. Create a cursor with `connection.cursor()`. A cursor sends SQL and reads query results for one connection.
+3. Call `cursor.execute(sql, values)`. The SQL contains `%s` markers and the values are passed as a tuple, keeping data separate from SQL syntax.
+4. Call `connection.commit()` after success so MySQL saves the change.
+5. If the connector raises `Error`, call `connection.rollback()` and show an explanation. This prevents a failed operation from being treated as saved.
+6. Close the cursor in `finally`, which runs whether the operation succeeds or fails.
+
+Read operations such as [`fetch_cars()`](car_company.py#L199) follow the same cursor/cleanup pattern but call `fetchall()` and do not commit because they do not change data. [`create_tables()`](car_company.py#L87) is different only in that it executes several schema statements before one commit.
+
+### Why the summary runs separate queries
+
+[`get_totals()`](car_company.py#L414) runs a grouped total for one fixed table. [`show_summary()`](car_company.py#L426) calls it once for production and once for sales, then joins those results in Python by `car_id`. Keeping the two aggregates separate avoids multiplying rows if one car has several production entries and several sales entries. For each car, the displayed result is:
+
+```text
+Cars left = total produced - total sold
+```
+
+This is a simple arithmetic summary, not an inventory rule: sales are not blocked when they exceed production.
+
 ## Further Reading
 
 - [Python documentation](https://docs.python.org/3/)
@@ -340,3 +424,4 @@ The test fixtures' `execute()`, `fetchall()`, and `close()` methods imitate the 
 - [MySQL Reference Manual](https://dev.mysql.com/doc/refman/8.0/en/)
 - [MySQL Connector/Python Developer Guide](https://dev.mysql.com/doc/connector-python/en/)
 - [Project README](README.md)
+- [School project report](project_report.md)

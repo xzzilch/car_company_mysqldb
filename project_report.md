@@ -46,6 +46,7 @@ database concepts using MySQL.
 | Requirements | [Page] |
 | Database Design | [Page] |
 | Program Logic | [Page] |
+| SQL Concepts Demonstrated | [Page] |
 | Sample Run and Testing | [Page] |
 | Limitations and Future Scope | [Page] |
 | Bibliography | [Page] |
@@ -54,7 +55,7 @@ Update page numbers after arranging or printing the final report.
 
 ## Project Overview
 
-The Car Company Database Management System is a menu-driven Python program
+The [Car Company Database Management System](car_company.py) is a menu-driven Python program
 connected to a MySQL database. It stores car models and prices and records
 production and sales quantities by date. The program can display, add, update,
 and delete records, and show production, sales, and cars left for each model.
@@ -62,6 +63,10 @@ and delete records, and show production, sales, and cars left for each model.
 The program creates the selected database and any missing tables when it
 starts. The user supplies connection details and enters project data through
 the menus instead of changing variables in the source code.
+
+See the [README](README.md) for setup and sample runs, and the
+[programming guide](PROGRAMMING_GUIDE.md) for detailed explanations of the
+source code and its functions.
 
 ## Objectives
 
@@ -82,7 +87,8 @@ the menus instead of changing variables in the source code.
 
 ### Software
 
-- Python 3.
+- Python 3.8 or newer. The selected `mysql-connector-python` release must
+    support the installed Python version.
 - MySQL Server.
 - Python package `mysql-connector-python`.
 
@@ -136,7 +142,8 @@ car. They also prevent a car from being deleted while related rows remain.
 | `sales` | `quantity` | `INT` | Required |
 
 Run `DESCRIBE cars;`, `DESCRIBE production;`, and `DESCRIBE sales;` in MySQL
-to see the complete server-formatted table definitions.
+to see the complete server-formatted table definitions. The statements that
+create these tables are in [`create_tables()`](car_company.py#L87).
 
 ## Program Logic
 
@@ -190,10 +197,13 @@ ORDER BY p.production_id;
 
 ## Sample Run and Testing
 
-The README contains example terminal runs for adding a car, recording
+The [README](README.md) contains example terminal runs for adding a car, recording
 production and sales, and viewing the summary. Use those examples alongside
 this report. Replace the sample values with the output from your own test run
 before including screenshots or printouts.
+
+The example values in the README are illustrative. Do not submit them as
+evidence of a personal test run; use output from your own database instead.
 
 | Test | Expected result | Result |
 | --- | --- | --- |
@@ -208,8 +218,9 @@ before including screenshots or printouts.
 Attach screenshots or printed output from an actual run if your teacher asks
 for them. Do not present the sample transcript as a screenshot of a real run.
 
-Run the automated checks with `python -m unittest discover -s tests`. The
-current suite passes 15 tests using a fake database cursor; it does not replace
+Run the [automated checks](tests/test_car_company.py) with
+`python -m unittest discover -s tests`. The current suite passes 16 tests using
+a fake database cursor; it does not replace
 testing the application against a running MySQL server. Record your own manual
 test results before submission.
 

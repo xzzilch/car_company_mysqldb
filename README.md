@@ -1,12 +1,15 @@
 # Car Company Database
 
-**Documentation:** [README overview](README.md) | [Programming guide](PROGRAMMING_GUIDE.md) | [CBSE project report](project_report.md)
+**Documentation:** [Overview](README.md) · [Programming guide](PROGRAMMING_GUIDE.md) · [CBSE project report](project_report.md)
+
+**On this page:** [Database](#database-design) · [Requirements](#requirements) · [Download](#download-to-desktop) · [Run](#running-the-project) · [Menu](#menu-guide) · [Examples](#example-run) · [Testing](#testing-checklist)
 
 ## Project Overview
 
 This menu-driven project uses Python and MySQL to manage basic car company
 records. It stores car models and prices, records production and sales by date,
-allows saved rows to be updated or deleted, and displays totals for each model.
+allows saved rows to be updated or deleted, and displays production, sales, and
+cars-left totals for each model.
 
 At startup, the program asks for the MySQL connection details. The user enters
 car models, prices, dates, and quantities through the menus; no project data
@@ -83,7 +86,8 @@ queries come only from fixed choices inside the program.
 
 ## Requirements
 
-- Python 3.8 or newer; Python 3.9 or newer is recommended.
+- Python 3.8 or newer. Choose a `mysql-connector-python` release that supports
+  the installed Python version.
 - MySQL Server 8.0 or a compatible server, running locally or reachable over a
   network.
 - A MySQL account with permission to create the project database and tables.
@@ -122,34 +126,29 @@ The commands put downloaded project files on the Desktop. They do not install
 Python, the MySQL connector, or MySQL Server, and do not download database
 records. Records remain in the MySQL database selected when the program runs.
 Install the connector and run the program from the downloaded folder as
-described below.
+described below. See the [programming guide](PROGRAMMING_GUIDE.md) for a
+code-level walkthrough and the [project report](project_report.md) for the
+school-submission template.
 
 ## Project Files
 
-- `car_company.py` contains the menu-driven application.
-- `tests/test_car_company.py` contains automated tests that do not need MySQL.
-- `requirements.txt` lists the Python package required by the application.
-- `PROGRAMMING_GUIDE.md` explains Python, MySQL, the schema, and program functions.
-- `project_report.md` is a school-submission report template.
+- [car_company.py](car_company.py) contains the menu-driven application.
+- [tests/test_car_company.py](tests/test_car_company.py) contains automated tests that do not need MySQL.
+- [requirements.txt](requirements.txt) lists the Python package required by the application.
+- [PROGRAMMING_GUIDE.md](PROGRAMMING_GUIDE.md) explains the Python code, MySQL schema, and function flow.
+- [project_report.md](project_report.md) is a school-submission report template.
 - `.gitignore` excludes local environments, caches, and secret files.
-
-Install the connector from a terminal:
-
-```text
-python -m pip install -r requirements.txt
-```
-
-See [project_report.md](project_report.md) for a school-submission report
-template. Fill in its personal details and replace sample results with your own
-actual test results before submitting.
 
 ## Running the Project
 
-Run the program from its folder:
+From the project folder, install the connector and run the program:
 
-```text
+```sh
+python -m pip install -r requirements.txt
 python car_company.py
 ```
+
+On systems where Python 3 is run as `python3`, replace `python` with `python3`.
 
 When both input and output use an interactive terminal, each menu redraw clears
 the previous menu. Lists shown during an add or update stay on screen while you
@@ -370,13 +369,17 @@ sales; negative values indicate that recorded sales exceed recorded production.
   the relationship.
 - View the summary and compare its totals with the entries entered.
 
-The automated tests cover input validation, summary output, screen handling,
-and startup cleanup. They use Python's built-in `unittest` module and do not
-need a running MySQL server. Run them from the project folder:
+The [automated tests](tests/test_car_company.py) cover input validation,
+summary output, screen handling, and startup cleanup. They use Python's
+built-in `unittest` module and do not need a running MySQL server. Run them
+from the project folder:
 
 ```text
 python -m unittest discover -s tests
 ```
+
+For a school submission, use the [project report](project_report.md) and
+replace its placeholders with your own details and actual test evidence.
 
 ## Scope and Limitations
 

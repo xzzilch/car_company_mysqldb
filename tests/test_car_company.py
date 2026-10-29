@@ -133,6 +133,18 @@ class SummaryTests(unittest.TestCase):
         self.assertIn("A very long car model name ... |", output.getvalue())
         self.assertIn("|      120 |   35 |        85", output.getvalue())
 
+    def test_summary_expands_numeric_columns_for_large_totals(self):
+        connection = FakeConnection(
+            produced=[(1, 12345678901)],
+            sold=[(1, 1234567890)],
+        )
+        output = io.StringIO()
+
+        with contextlib.redirect_stdout(output):
+            car_company.show_summary(connection)
+
+        self.assertIn("| 12345678901 | 1234567890 | 11111111011", output.getvalue())
+
     def test_screen_clear_uses_windows_command_for_interactive_terminal(self):
         output = FakeTerminal()
         input_terminal = FakeTerminal()

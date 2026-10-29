@@ -432,7 +432,7 @@ def show_summary(connection):
     produced = get_totals(connection, "production")
     sold = get_totals(connection, "sales")
     model_width = 30
-    print(f"{'Car model':<{model_width}} | Produced | Sold | Cars left")
+    summary_rows = []
     for car_id, model, _ in cars:
         # A car without entries is still shown, with its missing total displayed as zero.
         produced_count = produced.get(car_id, 0)
@@ -442,9 +442,19 @@ def show_summary(connection):
             display_model = model[:model_width - 3] + "..."
         else:
             display_model = model
+        summary_rows.append((display_model, produced_count, sold_count, left_count))
+
+    produced_width = max(len("Produced"), *(len(str(row[1])) for row in summary_rows))
+    sold_width = max(len("Sold"), *(len(str(row[2])) for row in summary_rows))
+    left_width = max(len("Cars left"), *(len(str(row[3])) for row in summary_rows))
+    print(
+        f"{'Car model':<{model_width}} | {'Produced':>{produced_width}} | "
+        f"{'Sold':>{sold_width}} | {'Cars left':>{left_width}}"
+    )
+    for display_model, produced_count, sold_count, left_count in summary_rows:
         print(
-            f"{display_model:<{model_width}} | {produced_count:8} | "
-            f"{sold_count:4} | {left_count:9}"
+            f"{display_model:<{model_width}} | {produced_count:>{produced_width}} | "
+            f"{sold_count:>{sold_width}} | {left_count:>{left_width}}"
         )
 
 
