@@ -4,6 +4,8 @@
 
 **Documentation:** [Overview](README.md) · [Programming guide](PROGRAMMING_GUIDE.md) · [CBSE project report](project_report.md)
 
+**Project links:** [Report a bug](https://github.com/xzzilch/car_company_mysqldb/issues/new?template=bug_report.yml) · [Suggest an improvement](https://github.com/xzzilch/car_company_mysqldb/issues/new?template=feature_request.yml) · [Contributing](CONTRIBUTING.md)
+
 **On this page:** [Overview](#project-overview) · [Database](#database-design) · [Requirements](#requirements) · [Download](#download-to-desktop) · [Run](#running-the-project) · [Menu](#menu-guide) · [Examples](#example-run) · [Queries](#example-queries) · [Testing](#testing-checklist)
 
 ## Project Overview
@@ -154,6 +156,9 @@ school-submission template.
 - [project_report.md](project_report.md) is a school-submission report template.
 - [CONTRIBUTING.md](CONTRIBUTING.md) explains the small-project contribution and test process.
 - [.github/workflows/tests.yml](.github/workflows/tests.yml) runs the unit tests on pushes and pull requests to `main`.
+- [Bug report form](.github/ISSUE_TEMPLATE/bug_report.yml) helps collect reproduction steps and environment details.
+- [Feature request form](.github/ISSUE_TEMPLATE/feature_request.yml) keeps suggestions focused on project needs.
+- [Pull request checklist](.github/PULL_REQUEST_TEMPLATE.md) reminds contributors to test and remove sensitive data.
 - `.gitignore` excludes local environments, caches, and secret files.
 
 ## Running the Project

@@ -1,0 +1,35 @@
+name: Feature request
+description: Suggest a small improvement to the school project.
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: Keep suggestions focused on the project's learning goals and simple terminal interface.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem should this solve?
+      description: Explain the situation or limitation behind the suggestion.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Suggested improvement
+      description: Describe the change and how it would help.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Optional. Mention other approaches you considered.
+    validations:
+      required: false
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Project fit
+      options:
+        - label: This suggestion fits a small, beginner-friendly Python and MySQL project.
+          required: true

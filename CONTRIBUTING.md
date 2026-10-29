@@ -19,4 +19,11 @@ The automated tests use fake database objects and do not need MySQL. For changes
 
 ## Reporting a problem
 
-Open a GitHub issue with the steps to reproduce the problem, the expected result, and the actual result. Include the operating system and Python version when relevant. Never include a MySQL password, private connection details, or real personal data in an issue or pull request.
+Use the [bug report form](.github/ISSUE_TEMPLATE/bug_report.yml) for problems
+or the [feature request form](.github/ISSUE_TEMPLATE/feature_request.yml) for
+ideas. Include the steps or use case, expected behavior, and relevant operating
+system/Python details. Never include a MySQL password, private connection
+details, or real personal data in an issue or pull request.
+
+Pull requests use the checklist in
+[.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md).

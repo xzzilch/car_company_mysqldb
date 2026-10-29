@@ -1,0 +1,56 @@
+name: Bug report
+description: Report an issue with the program or its documentation.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: Before submitting, check whether the issue has already been reported. Never include passwords, private connection details, or real personal data.
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the steps that lead to the problem.
+      placeholder: "1. Start the program...\n2. Choose...\n3. Enter..."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead? Remove passwords and private data from logs.
+    validations:
+      required: true
+  - type: dropdown
+    id: operating-system
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: e.g. 3.12
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I checked that this issue has not already been reported.
+          required: true
+        - label: I removed credentials and private data from this report.
+          required: true
