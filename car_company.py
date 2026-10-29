@@ -70,7 +70,13 @@ def connect_to_database():
             "Use a database name of 1 to 64 letters, numbers, or underscores."
         )
 
-    settings = {"host": host, "user": user, "password": password}
+    # A timeout avoids a long hang when the host is unreachable.
+    settings = {
+        "host": host,
+        "user": user,
+        "password": password,
+        "connection_timeout": 10,
+    }
     # Connect once without selecting a database so it can be created if necessary.
     server = mysql.connector.connect(**settings)
     try:
@@ -81,7 +87,12 @@ def connect_to_database():
             cursor.close()
     finally:
         server.close()
-    return mysql.connector.connect(database=database, **settings)
+    connection = mysql.connector.connect(database=database, **settings)
+    # The connector disables autocommit by default, so read-only menus would
+    # hold one transaction open and keep seeing a stale snapshot of other
+    # sessions' writes. Autocommit keeps every SELECT current.
+    connection.autocommit = True
+    return connection
 
 
 def create_tables(connection):
