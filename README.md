@@ -1,5 +1,7 @@
 # Car Company Database
 
+![Automated tests](https://github.com/xzzilch/car_company_mysqldb/actions/workflows/tests.yml/badge.svg)
+
 **Documentation:** [Overview](README.md) · [Programming guide](PROGRAMMING_GUIDE.md) · [CBSE project report](project_report.md)
 
 **On this page:** [Overview](#project-overview) · [Database](#database-design) · [Requirements](#requirements) · [Download](#download-to-desktop) · [Run](#running-the-project) · [Menu](#menu-guide) · [Examples](#example-run) · [Queries](#example-queries) · [Testing](#testing-checklist)
@@ -150,6 +152,8 @@ school-submission template.
 - [requirements.txt](requirements.txt) lists the Python package required by the application.
 - [PROGRAMMING_GUIDE.md](PROGRAMMING_GUIDE.md) explains the Python code, MySQL schema, and function flow.
 - [project_report.md](project_report.md) is a school-submission report template.
+- [CONTRIBUTING.md](CONTRIBUTING.md) explains the small-project contribution and test process.
+- [.github/workflows/tests.yml](.github/workflows/tests.yml) runs the unit tests on pushes and pull requests to `main`.
 - `.gitignore` excludes local environments, caches, and secret files.
 
 ## Running the Project
@@ -390,6 +394,10 @@ from the project folder:
 ```text
 python -m unittest discover -s tests
 ```
+
+GitHub Actions runs the same command for pushes and pull requests targeting
+`main`. Database integration still needs a separate MySQL server and is not
+part of the automated workflow.
 
 For a school submission, use the [project report](project_report.md) and
 replace its placeholders with your own details and actual test evidence.

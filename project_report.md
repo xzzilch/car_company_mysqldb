@@ -232,10 +232,11 @@ Run the [automated checks](tests/test_car_company.py) from the project folder:
 python -m unittest discover -s tests
 ```
 
-The current suite passes 16 tests using a fake database cursor. It checks input
-validation, summary values and formatting, screen handling, and startup cleanup;
-it does not replace testing against a running MySQL server. Record your own
-manual test results before submission.
+The tests use fake database objects and check input validation, summary values
+and formatting, screen handling, and startup cleanup. GitHub Actions runs this
+suite on pushes and pull requests to `main`. The automated tests do not replace
+testing against a running MySQL server. Record your own manual test results
+before submission.
 
 ## Limitations and Future Scope
 
