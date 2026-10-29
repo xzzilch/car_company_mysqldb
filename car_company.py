@@ -123,13 +123,14 @@ def create_tables(connection):
 # INPUT CHECKS
 def read_positive_integer(message):
     # Keep asking until the user enters a valid positive whole number.
+    # Digits only: int() also accepts underscores and a plus sign, which the
+    # prompt never advertises.
     while True:
-        try:
-            value = int(input(message).strip())
+        raw = input(message).strip()
+        if re.fullmatch(r"[0-9]+", raw):
+            value = int(raw)
             if 0 < value <= 2147483647:
                 return value
-        except ValueError:
-            pass
         print("Enter a whole number from 1 through 2,147,483,647.")
 
 
