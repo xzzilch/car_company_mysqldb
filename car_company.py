@@ -254,7 +254,15 @@ def update_car(connection):
             (model, price, car_id),
         )
         connection.commit()
-        print("Car updated." if cursor.rowcount else "No car found with that ID.")
+        report_update_result(
+            cursor,
+            "cars",
+            "car_id",
+            car_id,
+            "Car updated.",
+            "No changes needed.",
+            "No car found with that ID.",
+        )
     except Error as error:
         connection.rollback()
         print("Could not update car. Check that the model is not already used.")
@@ -375,7 +383,15 @@ def update_record(connection, table):
             (car_id, record_date, quantity, record_id),
         )
         connection.commit()
-        print("Record updated." if cursor.rowcount else "No record found with that ID.")
+        report_update_result(
+            cursor,
+            table,
+            id_column,
+            record_id,
+            "Record updated.",
+            "No changes needed.",
+            "No record found with that ID.",
+        )
     except Error as error:
         connection.rollback()
         print("Could not update record. Check the car ID and date.")
@@ -503,6 +519,28 @@ def manage_records(connection, table):
         else:
             print("Choose 1, 2, 3, 4, or 0.")
         pause_for_menu()
+
+
+def report_update_result(
+    cursor,
+    table,
+    id_column,
+    item_id,
+    updated_message,
+    unchanged_message,
+    missing_message,
+):
+    """Distinguish a missing row from a successful no-op update."""
+    if cursor.rowcount:
+        print(updated_message)
+        return
+
+    # MySQL can report zero changed rows when the matching row already had these values.
+    cursor.execute(
+        f"SELECT 1 FROM {table} WHERE {id_column} = %s",
+        (item_id,),
+    )
+    print(unchanged_message if cursor.fetchone() else missing_message)
 
 
 def main():

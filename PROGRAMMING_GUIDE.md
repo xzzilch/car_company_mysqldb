@@ -289,7 +289,7 @@ The schema is described field-by-field in [Database Tables](#database-tables). T
 - **[`fetch_cars(connection)`](car_company.py#L199)** runs the ordered `SELECT` for `car_id`, `model`, and `price`, returns all fetched rows, and closes the cursor in `finally`.
 - **[`show_cars(connection)`](car_company.py#L209)** prints a heading and either an empty-state message or each returned car. It also returns the rows so callers can restrict ID input to visible cars.
 - **[`add_car(connection)`](car_company.py#L221)** collects validated model and price values, inserts them with `%s` placeholders, and commits. A connector error triggers rollback and an explanatory message; the cursor is always closed.
-- **[`update_car(connection)`](car_company.py#L241)** displays cars, validates the selected car ID, gathers replacement values, and updates the row selected by its primary key. It checks `rowcount` to distinguish a changed row from no match.
+- **[`update_car(connection)`](car_company.py#L241)** displays cars, validates the selected car ID, gathers replacement values, and updates the row selected by its primary key. A zero `rowcount` triggers a `SELECT` check so an unchanged car is not reported as missing.
 - **[`delete_car(connection)`](car_company.py#L275)** displays cars, validates the ID, asks for confirmation, then deletes by primary key. A foreign-key error prevents removal if production or sales rows still refer to the car.
 
 The car operations do not manually generate IDs. MySQL's `AUTO_INCREMENT` supplies them. A model duplicate is rejected by the database's `UNIQUE` rule, and the operation catches the connector error, rolls back, and displays its details.
@@ -298,13 +298,15 @@ The car operations do not manually generate IDs. MySQL's `AUTO_INCREMENT` suppli
 
 - **[`show_records(connection, table)`](car_company.py#L299)** uses the selected fixed `RECORDS` entry to choose table/column names, joins records to `cars` for readable model names, orders by record ID, prints the rows, and returns them for later ID validation.
 - **[`add_record(connection, table)`](car_company.py#L326)** requires at least one car, accepts only a displayed car ID, reads a valid date and quantity, and inserts the row into production or sales. User values are bound separately from the SQL text.
-- **[`update_record(connection, table)`](car_company.py#L354)** requires an existing record, validates both the record ID and replacement car ID, gathers date and quantity, then updates the selected record. All editable fields are replaced together.
+- **[`update_record(connection, table)`](car_company.py#L354)** requires an existing record, validates both the record ID and replacement car ID, gathers date and quantity, then updates the selected record. All editable fields are replaced together; a zero `rowcount` is checked for an unchanged existing row before reporting it missing.
 - **[`delete_record(connection, table)`](car_company.py#L387)** requires an existing record and explicit confirmation before deleting by its record ID.
 - **[`get_totals(connection, table)`](car_company.py#L414)** runs `SUM(quantity)` with `GROUP BY car_id` and converts the returned `(car_id, total)` pairs into a dictionary for quick lookups.
 
 The `table` argument to these shared operations must be one of the fixed `RECORDS` keys; it is not free-form user input. This is important because table and column names are interpolated into the SQL statement, while actual user values use placeholders.
 
 This is the program's CRUD pattern: create with `INSERT`, read with `SELECT`, edit with `UPDATE`, and remove with `DELETE`. Updates and deletes include a `WHERE` condition on the chosen record's primary-key ID so they affect only the selected row.
+This is the program's CRUD pattern: create with `INSERT`, read with `SELECT`, edit with `UPDATE`, and remove with `DELETE`. Updates and deletes include a `WHERE` condition on the chosen record's primary-key ID so they affect only the selected row. Connector `rowcount` reports changed rows in the default configuration, not necessarily every matched row; the update-result helper checks whether the row still exists when no values changed.
+This is the program's CRUD pattern: create with `INSERT`, read with `SELECT`, edit with `UPDATE`, and remove with `DELETE`. Updates and deletes include a `WHERE` condition on the chosen record's primary-key ID so they affect only the selected row. Connector `rowcount` reports changed rows in the default configuration, not necessarily every matched row; the update-result helper checks whether the row still exists when no values changed. Its table and column identifiers come only from the two fixed internal update callers; the ID is still passed as a parameter.
 
 ### Summary and application flow
 

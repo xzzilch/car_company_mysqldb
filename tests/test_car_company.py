@@ -54,6 +54,21 @@ class FakeTerminal(io.StringIO):
         return True
 
 
+class FakeUpdateCursor:
+    def __init__(self, rowcount, row_exists=False):
+        self.rowcount = rowcount
+        self.row_exists = row_exists
+        self.query = None
+        self.parameters = None
+
+    def execute(self, query, parameters):
+        self.query = query
+        self.parameters = parameters
+
+    def fetchone(self):
+        return (1,) if self.row_exists else None
+
+
 class InputValidationTests(unittest.TestCase):
     def test_integer_rejects_values_outside_mysql_int_range(self):
         with patch("builtins.input", side_effect=["2147483648", "7"]):
@@ -84,6 +99,40 @@ class DeleteConfirmationTests(unittest.TestCase):
     def test_invalid_answer_repeats_until_delete_is_confirmed(self):
         with patch("builtins.input", side_effect=["maybe", "Y"]):
             self.assertTrue(car_company.confirm_delete())
+
+
+class UpdateResultTests(unittest.TestCase):
+    def run_update_result(self, cursor):
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            car_company.report_update_result(
+                cursor,
+                "cars",
+                "car_id",
+                7,
+                "Car updated.",
+                "No changes needed.",
+                "No car found with that ID.",
+            )
+        return output.getvalue()
+
+    def test_changed_row_reports_success_without_extra_query(self):
+        cursor = FakeUpdateCursor(rowcount=1)
+
+        self.assertIn("Car updated.", self.run_update_result(cursor))
+        self.assertIsNone(cursor.query)
+
+    def test_unchanged_existing_row_is_not_reported_missing(self):
+        cursor = FakeUpdateCursor(rowcount=0, row_exists=True)
+
+        self.assertIn("No changes needed.", self.run_update_result(cursor))
+        self.assertEqual(cursor.query, "SELECT 1 FROM cars WHERE car_id = %s")
+        self.assertEqual(cursor.parameters, (7,))
+
+    def test_missing_row_reports_missing(self):
+        cursor = FakeUpdateCursor(rowcount=0, row_exists=False)
+
+        self.assertIn("No car found with that ID.", self.run_update_result(cursor))
 
 
 class SummaryTests(unittest.TestCase):
