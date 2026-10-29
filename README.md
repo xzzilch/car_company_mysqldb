@@ -1,5 +1,7 @@
 # Car Company Database
 
+**Documentation:** [README overview](README.md) | [Programming guide](PROGRAMMING_GUIDE.md) | [CBSE project report](project_report.md)
+
 ## Project Overview
 
 This menu-driven project uses Python and MySQL to manage basic car company
@@ -10,13 +12,6 @@ At startup, the program asks for the MySQL connection details. The user enters
 car models, prices, dates, and quantities through the menus; no project data
 needs to be entered by editing the Python file. The program creates the chosen
 database and any missing tables. Existing records are kept.
-
-## Documentation
-
-- [Programming Guide](PROGRAMMING_GUIDE.md): Python and SQL/MySQL introductions,
-  system requirements, connector tutorial, exact table descriptions, and a
-  function-by-function guide to the program and its imported APIs.
-- [Project Report](project_report.md): school-submission report template.
 
 ## Objectives
 
@@ -187,7 +182,8 @@ provides these actions:
 
 For a production or sales entry, first add the car in **Manage cars**. Use a
 car ID shown in the list. Update and delete operations also accept only IDs
-shown in the relevant list. Dates must use `YYYY-MM-DD`. When adding an entry,
+shown in the relevant list. Dates must use `YYYY-MM-DD` and fall within
+MySQL's `1000-01-01` to `9999-12-31` range. When adding an entry,
 press Enter at the date prompt to use today's date; updates require a date.
 Prices must be greater than zero and have at most two decimal places.
 Quantities and IDs must be positive whole numbers that fit the MySQL `INT`
@@ -312,13 +308,15 @@ Choose an option: 4
 --------------------------------
   PRODUCTION AND SALES SUMMARY
 --------------------------------
-Car model            | Produced | Sold | Cars left
-City LX              |      120 |   35 |        85
+Car model                      | Produced | Sold | Cars left
+City LX                        |      120 |   35 |        85
 ```
 
 The `Cars left` value is total production minus total sales. A missing total is
 shown as zero. Negative values are shown as-is to make sales exceeding
-production visible; the program does not enforce stock limits.
+production visible; the program does not enforce stock limits. Long model names
+are abbreviated in this summary so the numeric columns stay aligned; the saved
+name is unchanged.
 
 ## Example Queries
 

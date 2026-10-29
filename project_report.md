@@ -209,7 +209,7 @@ Attach screenshots or printed output from an actual run if your teacher asks
 for them. Do not present the sample transcript as a screenshot of a real run.
 
 Run the automated checks with `python -m unittest discover -s tests`. The
-current suite passes 13 tests using a fake database cursor; it does not replace
+current suite passes 15 tests using a fake database cursor; it does not replace
 testing the application against a running MySQL server. Record your own manual
 test results before submission.
 

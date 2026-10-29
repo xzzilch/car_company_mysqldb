@@ -67,6 +67,10 @@ class InputValidationTests(unittest.TestCase):
         with patch("builtins.input", side_effect=["20261023", "2026-10-23"]):
             self.assertEqual(car_company.read_date("Date: "), "2026-10-23")
 
+    def test_date_rejects_values_before_mysql_date_range(self):
+        with patch("builtins.input", side_effect=["0999-12-31", "1000-01-01"]):
+            self.assertEqual(car_company.read_date("Date: "), "1000-01-01")
+
     def test_id_must_appear_in_allowed_list(self):
         with patch("builtins.input", side_effect=["99", "1"]):
             self.assertEqual(car_company.read_existing_id("ID: ", [1]), 1)
@@ -117,6 +121,17 @@ class SummaryTests(unittest.TestCase):
             car_company.show_summary(connection)
 
         self.assertIn("|       10 |   12 |        -2", output.getvalue())
+
+    def test_summary_truncates_long_model_names_without_shifting_columns(self):
+        connection = FakeConnection()
+        output = io.StringIO()
+        long_car = (1, "A very long car model name that will overflow", Decimal("1.00"))
+        with patch("car_company.fetch_cars", return_value=[long_car]):
+            with contextlib.redirect_stdout(output):
+                car_company.show_summary(connection)
+
+        self.assertIn("A very long car model name ... |", output.getvalue())
+        self.assertIn("|      120 |   35 |        85", output.getvalue())
 
     def test_screen_clear_uses_windows_command_for_interactive_terminal(self):
         output = FakeTerminal()

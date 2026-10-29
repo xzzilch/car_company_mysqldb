@@ -238,7 +238,7 @@ These are the functions defined in `car_company.py`, grouped by what the program
 - **`read_price(message)`** repeats until the input is a finite positive decimal that fits `DECIMAL(10, 2)` and has no more than two decimal places.
 - **`read_model(message)`** accepts a non-empty model name of at most 50 characters.
 - **`read_existing_id(message, valid_ids)`** accepts only an ID from the IDs in the list already displayed.
-- **`read_date(message, default_today=False)`** validates a real date in `YYYY-MM-DD` form. When `default_today=True`, empty input means today's date.
+- **`read_date(message, default_today=False)`** validates a real MySQL `DATE` value in `YYYY-MM-DD` form. When `default_today=True`, empty input means today's date.
 - **`show_error_details(error)`** prints a connector error wrapped to fit the detected terminal width, using 80 columns as a fallback.
 - **`confirm_delete()`** accepts only `y` or `n` and returns `True` only for `y`.
 
@@ -262,7 +262,7 @@ The `table` argument is expected to be one of the fixed keys in `RECORDS`; it is
 
 ### Summary and application flow
 
-- **`show_summary(connection)`** loads cars and the two totals, treats a missing total as zero, calculates `produced - sold`, and prints the `Cars left` column. A negative result is shown rather than blocked.
+- **`show_summary(connection)`** loads cars and the two totals, treats a missing total as zero, calculates `produced - sold`, and prints the `Cars left` column. Long model names are abbreviated for alignment; negative balances remain visible.
 - **`manage_cars(connection)`** displays the car menu, dispatches the selected action, pauses after an action, and returns on option 0.
 - **`manage_records(connection, table)`** displays the production or sales menu and routes the selected action to the appropriate function.
 - **`main()`** connects to MySQL, creates missing tables, runs the main menu, handles database and keyboard errors, and closes the connection.

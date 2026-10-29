@@ -173,14 +173,15 @@ def read_existing_id(message, valid_ids):
 
 
 def read_date(message, default_today=False):
-    # date.fromisoformat checks that the date is a real calendar date.
+    # MySQL DATE starts at 1000-01-01; date.fromisoformat checks real dates.
     while True:
         value = input(message).strip()
         if not value and default_today:
             return date.today().isoformat()
         try:
             parsed_date = date.fromisoformat(value)
-            if parsed_date.isoformat() == value:
+            is_mysql_date = parsed_date >= date(1000, 1, 1)
+            if parsed_date.isoformat() == value and is_mysql_date:
                 return value
         except ValueError:
             pass
@@ -430,14 +431,19 @@ def show_summary(connection):
         return
     produced = get_totals(connection, "production")
     sold = get_totals(connection, "sales")
-    print(f"{'Car model':<20} | Produced | Sold | Cars left")
+    model_width = 30
+    print(f"{'Car model':<{model_width}} | Produced | Sold | Cars left")
     for car_id, model, _ in cars:
         # A car without entries is still shown, with its missing total displayed as zero.
         produced_count = produced.get(car_id, 0)
         sold_count = sold.get(car_id, 0)
         left_count = produced_count - sold_count
+        if len(model) > model_width:
+            display_model = model[:model_width - 3] + "..."
+        else:
+            display_model = model
         print(
-            f"{model:<20} | {produced_count:8} | "
+            f"{display_model:<{model_width}} | {produced_count:8} | "
             f"{sold_count:4} | {left_count:9}"
         )
 
