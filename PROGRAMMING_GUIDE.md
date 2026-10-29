@@ -317,7 +317,7 @@ This is the program's CRUD pattern: create with `INSERT`, read with `SELECT`, ed
 
 ### Tests for the code paths
 
-The test module is [tests/test_car_company.py](tests/test_car_company.py). Its [`InputValidationTests`](tests/test_car_company.py#L57) check integer limits, decimal precision, date format/range, and listed IDs. [`SummaryTests`](tests/test_car_company.py#L79) cover normal, missing, and negative totals, long labels, and Windows/Unix/redirected screen clearing. [`StartupCleanupTests`](tests/test_car_company.py#L176) confirm the connection is closed if startup is interrupted. These tests use fake cursors and do not replace a live MySQL smoke test.
+The test module is [tests/test_car_company.py](tests/test_car_company.py). Its [`InputValidationTests`](tests/test_car_company.py#L57) check integer limits, decimal precision, date format/range, and listed IDs. [`DeleteConfirmationTests`](tests/test_car_company.py#L79) confirm invalid answers are rejected and both `n` and `y` work. [`SummaryTests`](tests/test_car_company.py#L89) cover normal, missing, and negative totals, long labels, large totals, and Windows/Unix/redirected screen clearing. [`StartupCleanupTests`](tests/test_car_company.py#L198) confirm the connection is closed if startup is interrupted. These tests use fake cursors and do not replace a live MySQL smoke test.
 
 ## Imported Modules and Functions
 
@@ -380,7 +380,7 @@ The test fixtures' `execute()`, `fetchall()`, and `close()` methods imitate the 
 - [`FakeStartupConnection`](tests/test_car_company.py#L44) records whether startup cleanup closed a connection.
 - [`FakeTerminal`](tests/test_car_company.py#L52) behaves like an interactive terminal for screen-clear tests.
 
-The test cases are grouped by behavior: [`InputValidationTests`](tests/test_car_company.py#L57), [`SummaryTests`](tests/test_car_company.py#L79), and [`StartupCleanupTests`](tests/test_car_company.py#L188). Run them with `python -m unittest discover -s tests` from the project directory.
+The test cases are grouped by behavior: [`InputValidationTests`](tests/test_car_company.py#L57), [`DeleteConfirmationTests`](tests/test_car_company.py#L79), [`SummaryTests`](tests/test_car_company.py#L89), and [`StartupCleanupTests`](tests/test_car_company.py#L198). Run them with `python -m unittest discover -s tests` from the project directory.
 
 ## Program Flow
 

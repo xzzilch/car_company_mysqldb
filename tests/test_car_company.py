@@ -76,6 +76,16 @@ class InputValidationTests(unittest.TestCase):
             self.assertEqual(car_company.read_existing_id("ID: ", [1]), 1)
 
 
+class DeleteConfirmationTests(unittest.TestCase):
+    def test_invalid_answer_repeats_until_delete_is_declined(self):
+        with patch("builtins.input", side_effect=["maybe", "n"]):
+            self.assertFalse(car_company.confirm_delete())
+
+    def test_invalid_answer_repeats_until_delete_is_confirmed(self):
+        with patch("builtins.input", side_effect=["maybe", "Y"]):
+            self.assertTrue(car_company.confirm_delete())
+
+
 class SummaryTests(unittest.TestCase):
     def test_summary_shows_grouped_production_and_sales(self):
         output = io.StringIO()

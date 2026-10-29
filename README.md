@@ -392,9 +392,9 @@ sales; negative values indicate that recorded sales exceed recorded production.
 - View the summary and compare its totals with the entries entered.
 
 The [automated tests](tests/test_car_company.py) cover input validation,
-summary output, screen handling, and startup cleanup. They use Python's
-built-in `unittest` module and do not need a running MySQL server. Run them
-from the project folder:
+delete confirmation, summary output, screen handling, and startup cleanup. They
+use Python's built-in `unittest` module and do not need a running MySQL server.
+Run them from the project folder:
 
 ```text
 python -m unittest discover -s tests

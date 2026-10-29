@@ -219,6 +219,7 @@ evidence of a personal test run; use output from your own database instead.
 | Add production and sales | Each row appears with its car model. | [Pass/Fail] |
 | Update an existing row | The selected row shows the replacement values. | [Pass/Fail] |
 | Cancel a deletion | The selected row remains in the database. | [Pass/Fail] |
+| Confirm a deletion | Only `y` confirms; invalid answers are rejected. | [Pass/Fail] |
 | Enter an invalid date or number | The program asks for valid input again. | [Pass/Fail] |
 | Delete a car with linked records | MySQL prevents deletion because of the foreign key. | [Pass/Fail] |
 | View the summary | Production, sales, and cars-left values match entered rows. | [Pass/Fail] |
