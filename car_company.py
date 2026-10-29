@@ -140,18 +140,17 @@ def read_price(message):
         value = input(message).strip()
         try:
             price = Decimal(value)
-            has_valid_value = price.is_finite() and Decimal("0") < price
-            fits_column = price <= Decimal("99999999.99")
-            has_two_or_fewer_decimals = price.as_tuple().exponent >= -2
-            if has_valid_value and fits_column and has_two_or_fewer_decimals:
-                return price
         except InvalidOperation:
-            pass
+            price = None
+        if (price is not None and price.is_finite()
+                and Decimal("0") < price
+                and price <= Decimal("99999999.99")
+                and price.as_tuple().exponent >= -2):
+            return price
         print(
             "Enter a price over zero, up to 99,999,999.99, "
             "with at most two decimals."
         )
-
 
 def read_model(message):
     """Read a non-empty model name that fits the database column."""
