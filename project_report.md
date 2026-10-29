@@ -176,6 +176,10 @@ cursor.execute(
 )
 ```
 
+The README includes a compact diagram of how the user interface, Python
+program, test suite, and MySQL database fit together. A detailed application
+flowchart is in the [programming guide](PROGRAMMING_GUIDE.md#program-flow).
+
 ## SQL Concepts Demonstrated
 
 - `CREATE DATABASE` and `CREATE TABLE` create the database structure.

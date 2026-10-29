@@ -384,6 +384,47 @@ The test cases are grouped by behavior: [`InputValidationTests`](tests/test_car_
 
 ## Program Flow
 
+This diagram follows the path through [`main()`](car_company.py#L508). A
+section-menu action returns to that section's menu; choosing `0` returns to the
+main menu. Database operation errors are rolled back before the program
+continues or exits.
+
+```mermaid
+flowchart TD
+    Start([Run car_company.py]) --> Connect[Ask for MySQL settings]
+    Connect --> CreateDB[Create database if missing]
+    CreateDB --> OpenDB[Connect to selected database]
+    OpenDB --> Tables[Create missing tables]
+    CreateDB -. database error .-> StartupError[Show startup error]
+    OpenDB -. connection error .-> StartupError
+    Tables -. schema error .-> StartupError
+    StartupError --> Close[Close connection if open]
+    Tables --> MainMenu{Main menu choice}
+    MainMenu -->|1| CarsMenu{Cars menu}
+    MainMenu -->|2| ProductionMenu{Production menu}
+    MainMenu -->|3| SalesMenu{Sales menu}
+    MainMenu -->|4| Summary[Show production, sales, and cars left]
+    MainMenu -->|0| Close
+    CarsMenu -->|View, add, update, delete| CarAction[Run car operation]
+    ProductionMenu -->|View, add, update, delete| ProductionAction[Run production operation]
+    SalesMenu -->|View, add, update, delete| SalesAction[Run sales operation]
+    CarAction -->|Return| CarsMenu
+    ProductionAction -->|Return| ProductionMenu
+    SalesAction -->|Return| SalesMenu
+    CarsMenu -->|0| MainMenu
+    ProductionMenu -->|0| MainMenu
+    SalesMenu -->|0| MainMenu
+    Summary --> MainMenu
+    CarAction -. database error .-> Rollback[Rollback and show error]
+    ProductionAction -. database error .-> Rollback
+    SalesAction -. database error .-> Rollback
+    Summary -. database error .-> Rollback
+    Rollback -->|rollback succeeds| MainMenu
+    Rollback -->|connection lost| Close
+    MainMenu -->|0| Close
+    Close --> End([Exit])
+```
+
 1. `main()` opens a MySQL connection and creates any missing tables.
 2. The main menu routes to car management, production management, sales management, the summary, or exit.
 3. Input helper functions validate values before database operations.

@@ -6,7 +6,7 @@
 
 **Project links:** [Report a bug](https://github.com/xzzilch/car_company_mysqldb/issues/new?template=bug_report.yml) · [Suggest an improvement](https://github.com/xzzilch/car_company_mysqldb/issues/new?template=feature_request.yml) · [Contributing](CONTRIBUTING.md)
 
-**On this page:** [Overview](#project-overview) · [Database](#database-design) · [Requirements](#requirements) · [Download](#download-to-desktop) · [Run](#running-the-project) · [Menu](#menu-guide) · [Examples](#example-run) · [Queries](#example-queries) · [Testing](#testing-checklist)
+**On this page:** [Overview](#project-overview) · [Architecture](#how-the-parts-fit-together) · [Database](#database-design) · [Requirements](#requirements) · [Download](#download-to-desktop) · [Run](#running-the-project) · [Menu](#menu-guide) · [Examples](#example-run) · [Queries](#example-queries) · [Testing](#testing-checklist)
 
 ## Project Overview
 
@@ -32,6 +32,21 @@ database and any missing tables. Existing records are kept.
 
 Start with [requirements and setup](#requirements), or open the
 [programming guide](PROGRAMMING_GUIDE.md) for a detailed code walkthrough.
+
+### How the parts fit together
+
+```mermaid
+flowchart LR
+  User[User] <--> Terminal[Python terminal menus]
+  Terminal --> App[car_company.py]
+  App -->|MySQL Connector/Python| DB[(MySQL database)]
+  Tests[unittest suite] -->|checks| App
+```
+
+The terminal program validates menu input before sending database operations.
+MySQL stores the car, production, and sales records between runs. The
+[programming guide](PROGRAMMING_GUIDE.md#program-flow) shows the detailed
+startup and menu flow.
 
 ## Objectives
 
