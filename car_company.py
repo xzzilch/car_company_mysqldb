@@ -2,8 +2,8 @@
 
 The program stores car details, production entries, and sales entries in MySQL.
 It demonstrates related tables, primary and foreign keys, and the basic SQL
-operations INSERT, SELECT, UPDATE, and DELETE. Its summary uses JOIN, SUM, and
-GROUP BY to show production and sales totals for each car.
+operations INSERT, SELECT, UPDATE, and DELETE. It uses JOIN to display record
+details with car names and SUM with GROUP BY to calculate per-car totals.
 
 Requirements:
     - Python 3
@@ -21,6 +21,7 @@ values use SQL placeholders, and each data change is committed or rolled back.
 from datetime import date
 from decimal import Decimal, InvalidOperation
 from getpass import getpass
+import os
 import re
 import shutil
 import sys
@@ -40,7 +41,7 @@ RECORDS = {
 def clear_screen():
     """Clear an interactive terminal without affecting redirected output."""
     if sys.stdin.isatty() and sys.stdout.isatty():
-        print("\033[2J\033[H", end="")
+        os.system("cls" if os.name == "nt" else "clear")
 
 
 def print_heading(title):
@@ -429,11 +430,15 @@ def show_summary(connection):
         return
     produced = get_totals(connection, "production")
     sold = get_totals(connection, "sales")
+    print(f"{'Car model':<20} | Produced | Sold | Cars left")
     for car_id, model, _ in cars:
         # A car without entries is still shown, with its missing total displayed as zero.
+        produced_count = produced.get(car_id, 0)
+        sold_count = sold.get(car_id, 0)
+        left_count = produced_count - sold_count
         print(
-            f"{model} | Produced {produced.get(car_id, 0)} | "
-            f"Sold {sold.get(car_id, 0)}"
+            f"{model:<20} | {produced_count:8} | "
+            f"{sold_count:4} | {left_count:9}"
         )
 
 

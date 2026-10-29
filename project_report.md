@@ -57,7 +57,7 @@ Update page numbers after arranging or printing the final report.
 The Car Company Database Management System is a menu-driven Python program
 connected to a MySQL database. It stores car models and prices and records
 production and sales quantities by date. The program can display, add, update,
-and delete records, and show total production and sales for each car model.
+and delete records, and show production, sales, and cars left for each model.
 
 The program creates the selected database and any missing tables when it
 starts. The user supplies connection details and enters project data through
@@ -70,6 +70,7 @@ the menus instead of changing variables in the source code.
 - Perform insert, display, update, and delete operations.
 - Use a join to display record details with a car model.
 - Use `SUM` and `GROUP BY` to calculate totals for each car.
+- Calculate cars left by subtracting total sales from total production.
 - Validate user input and handle common database errors.
 
 ## Requirements
@@ -101,6 +102,12 @@ The MySQL account must be permitted to create the database and tables. The
 default connection prompts suggest host `localhost`, username `root`, and
 database `car_company`; a password is entered privately.
 
+The README provides curl commands to download the project into a folder on the
+Desktop. Downloading does not install Python, the connector, or MySQL Server.
+Car records remain in the selected MySQL database, not in the project folder.
+For interactive terminals, the program uses `os.system` to run `cls` on
+Windows and `clear` on other systems.
+
 ## Database Design
 
 The database has three tables. One car can be related to many production rows
@@ -111,14 +118,25 @@ cars (one) ------ (many) production
 cars (one) ------ (many) sales
 ```
 
-| Table | Important fields |
-| --- | --- |
-| `cars` | `car_id` primary key, `model` unique model name, `price` decimal price. |
-| `production` | `production_id` primary key, `car_id` foreign key, `production_date`, `quantity`. |
-| `sales` | `sale_id` primary key, `car_id` foreign key, `sale_date`, `quantity`. |
-
 The foreign keys ensure each production and sales row refers to an existing
 car. They also prevent a car from being deleted while related rows remain.
+
+| Table | Field | MySQL type | Key or rule |
+| --- | --- | --- | --- |
+| `cars` | `car_id` | `INT` | Primary key, auto-increment |
+| `cars` | `model` | `VARCHAR(50)` | Required, unique |
+| `cars` | `price` | `DECIMAL(10,2)` | Required |
+| `production` | `production_id` | `INT` | Primary key, auto-increment |
+| `production` | `car_id` | `INT` | Foreign key to `cars.car_id` |
+| `production` | `production_date` | `DATE` | Required |
+| `production` | `quantity` | `INT` | Required |
+| `sales` | `sale_id` | `INT` | Primary key, auto-increment |
+| `sales` | `car_id` | `INT` | Foreign key to `cars.car_id` |
+| `sales` | `sale_date` | `DATE` | Required |
+| `sales` | `quantity` | `INT` | Required |
+
+Run `DESCRIBE cars;`, `DESCRIBE production;`, and `DESCRIBE sales;` in MySQL
+to see the complete server-formatted table definitions.
 
 ## Program Logic
 
@@ -129,7 +147,19 @@ car. They also prevent a car from being deleted while related rows remain.
 5. Validate values before sending them to MySQL.
 6. Use parameterized SQL values for inserts, updates, and deletes.
 7. Commit successful changes and roll back failed database operations.
-8. Close the connection when the program exits.
+8. Calculate cars left as total production minus total sales for each car.
+9. Close the connection when the program exits.
+
+Python connects through MySQL Connector/Python. The program creates a cursor
+to execute SQL, uses `%s` placeholders for entered values, and commits or rolls
+back changes. Values are passed separately from SQL, as in this insert:
+
+```python
+cursor.execute(
+    "INSERT INTO cars (model, price) VALUES (%s, %s)",
+    (model, price),
+)
+```
 
 ## SQL Concepts Demonstrated
 
@@ -149,6 +179,15 @@ FROM production
 GROUP BY car_id;
 ```
 
+This query joins production entries to cars to show each entry's model:
+
+```sql
+SELECT p.production_id, c.model, p.production_date, p.quantity
+FROM production AS p
+JOIN cars AS c ON c.car_id = p.car_id
+ORDER BY p.production_id;
+```
+
 ## Sample Run and Testing
 
 The README contains example terminal runs for adding a car, recording
@@ -164,17 +203,24 @@ before including screenshots or printouts.
 | Cancel a deletion | The selected row remains in the database. | [Pass/Fail] |
 | Enter an invalid date or number | The program asks for valid input again. | [Pass/Fail] |
 | Delete a car with linked records | MySQL prevents deletion because of the foreign key. | [Pass/Fail] |
-| View the summary | Production and sales totals match entered rows. | [Pass/Fail] |
+| View the summary | Production, sales, and cars-left values match entered rows. | [Pass/Fail] |
 
 Attach screenshots or printed output from an actual run if your teacher asks
 for them. Do not present the sample transcript as a screenshot of a real run.
 
+Run the automated checks with `python -m unittest discover -s tests`. The
+current suite passes 13 tests using a fake database cursor; it does not replace
+testing the application against a running MySQL server. Record your own manual
+test results before submission.
+
 ## Limitations and Future Scope
 
-This project demonstrates basic database operations. It does not calculate
-live inventory, manage staff accounts, create invoices, or provide a graphical
-interface. Future improvements could include date-wise reports, stock
-calculation, and user accounts with different permissions.
+This project demonstrates basic database operations. Its cars-left value is a
+simple production-minus-sales total; negative values can appear if more sales
+than production are entered. It does not enforce inventory limits, manage
+staff accounts, create invoices, or provide a graphical interface. Future
+improvements could include date-wise reports and user accounts with different
+permissions.
 
 ## Bibliography
 

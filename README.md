@@ -11,6 +11,13 @@ car models, prices, dates, and quantities through the menus; no project data
 needs to be entered by editing the Python file. The program creates the chosen
 database and any missing tables. Existing records are kept.
 
+## Documentation
+
+- [Programming Guide](PROGRAMMING_GUIDE.md): Python and SQL/MySQL introductions,
+  system requirements, connector tutorial, exact table descriptions, and a
+  function-by-function guide to the program and its imported APIs.
+- [Project Report](project_report.md): school-submission report template.
+
 ## Objectives
 
 - Store company data in related MySQL tables.
@@ -81,16 +88,53 @@ queries come only from fixed choices inside the program.
 
 ## Requirements
 
-- Python 3
-- MySQL Server running on this computer or reachable on a network
-- A MySQL account that can create a database and tables
-- The Python package `mysql-connector-python`
+- Python 3.8 or newer; Python 3.9 or newer is recommended.
+- MySQL Server 8.0 or a compatible server, running locally or reachable over a
+  network.
+- A MySQL account with permission to create the project database and tables.
+- `mysql-connector-python`, installed from `requirements.txt`.
+- A keyboard and terminal. Windows, macOS, and Linux terminals are supported.
+
+The Python `unittest` module and all other application modules are included
+with Python, so they do not need entries in `requirements.txt`. See the
+[Programming Guide](PROGRAMMING_GUIDE.md#system-requirements) for details.
+
+## Download to Desktop
+
+These commands download the project into a folder named
+`car_company_mysqldb` on the Desktop, using the repository's `main` branch.
+
+On Linux or macOS:
+
+```sh
+mkdir -p "$HOME/Desktop/car_company_mysqldb"
+curl -L https://github.com/xzzilch/car_company_mysqldb/archive/refs/heads/main.tar.gz | tar -xz --strip-components=1 -C "$HOME/Desktop/car_company_mysqldb"
+```
+
+On Windows PowerShell:
+
+```powershell
+$desktop = [Environment]::GetFolderPath('Desktop')
+$archive = Join-Path $desktop 'car_company_mysqldb.zip'
+curl.exe -L https://github.com/xzzilch/car_company_mysqldb/archive/refs/heads/main.zip -o $archive
+Expand-Archive -Force $archive $desktop
+Remove-Item $archive
+```
+
+On Windows, the extracted folder is named `car_company_mysqldb-main`.
+
+The commands put downloaded project files on the Desktop. They do not install
+Python, the MySQL connector, or MySQL Server, and do not download database
+records. Records remain in the MySQL database selected when the program runs.
+Install the connector and run the program from the downloaded folder as
+described below.
 
 ## Project Files
 
 - `car_company.py` contains the menu-driven application.
 - `tests/test_car_company.py` contains automated tests that do not need MySQL.
 - `requirements.txt` lists the Python package required by the application.
+- `PROGRAMMING_GUIDE.md` explains Python, MySQL, the schema, and program functions.
 - `project_report.md` is a school-submission report template.
 - `.gitignore` excludes local environments, caches, and secret files.
 
@@ -268,10 +312,13 @@ Choose an option: 4
 --------------------------------
   PRODUCTION AND SALES SUMMARY
 --------------------------------
-City LX | Produced 120 | Sold 35
+Car model            | Produced | Sold | Cars left
+City LX              |      120 |   35 |        85
 ```
 
-If no sales entry exists for a car, the summary displays `Sold 0` instead.
+The `Cars left` value is total production minus total sales. A missing total is
+shown as zero. Negative values are shown as-is to make sales exceeding
+production visible; the program does not enforce stock limits.
 
 ## Example Queries
 
@@ -307,7 +354,8 @@ GROUP BY car_id;
 The summary menu runs this grouped query once for production and once for
 sales. It displays zero when a car has no matching entries. Keeping the totals
 separate avoids counting entries more than once when both tables contain
-multiple rows for the same car. The summary is not a current-stock report.
+multiple rows for the same car. The `Cars left` column is production minus
+sales; negative values indicate that recorded sales exceed recorded production.
 
 ## Testing Checklist
 
@@ -337,4 +385,5 @@ python -m unittest discover -s tests
 This project is intended for learning basic database operations. It does not
 include staff accounts, inventory valuation, invoices, graphical screens, or
 advanced reporting. Production and sales quantities are recorded as separate
-entries; the summary shows totals and does not calculate current stock.
+entries; the summary calculates a basic remaining quantity but does not enforce
+inventory limits.

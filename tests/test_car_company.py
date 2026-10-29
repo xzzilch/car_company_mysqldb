@@ -10,18 +10,20 @@ import car_company
 
 
 class FakeCursor:
-    """Return sample rows for the summary's three SELECT queries."""
+    """Return configurable rows for the summary's three SELECT queries."""
 
-    def __init__(self):
+    def __init__(self, produced=None, sold=None):
         self.rows = []
+        self.produced = [(1, 120)] if produced is None else produced
+        self.sold = [(1, 35)] if sold is None else sold
 
     def execute(self, query):
         if "SELECT car_id, model, price" in query:
             self.rows = [(1, "City LX", Decimal("1250000.00"))]
         elif "FROM production GROUP BY" in query:
-            self.rows = [(1, 120)]
+            self.rows = self.produced
         elif "FROM sales GROUP BY" in query:
-            self.rows = [(1, 35)]
+            self.rows = self.sold
 
     def fetchall(self):
         return self.rows
@@ -31,8 +33,12 @@ class FakeCursor:
 
 
 class FakeConnection:
+    def __init__(self, produced=None, sold=None):
+        self.produced = produced
+        self.sold = sold
+
     def cursor(self):
-        return FakeCursor()
+        return FakeCursor(self.produced, self.sold)
 
 
 class FakeStartupConnection:
@@ -72,27 +78,75 @@ class SummaryTests(unittest.TestCase):
         with contextlib.redirect_stdout(output):
             car_company.show_summary(FakeConnection())
 
-        self.assertIn("City LX | Produced 120", output.getvalue())
-        self.assertIn("Produced 120", output.getvalue())
-        self.assertIn("Sold 35", output.getvalue())
+        self.assertIn("Car model", output.getvalue())
+        self.assertIn("Produced | Sold | Cars left", output.getvalue())
+        self.assertIn("City LX", output.getvalue())
+        self.assertIn("|      120 |   35 |        85", output.getvalue())
         self.assertNotIn("\033", output.getvalue())
 
-    def test_screen_clear_runs_only_for_interactive_terminal(self):
+    def test_summary_shows_zero_when_no_records_exist(self):
+        output = io.StringIO()
+        connection = FakeConnection(produced=[], sold=[])
+
+        with contextlib.redirect_stdout(output):
+            car_company.show_summary(connection)
+
+        self.assertIn("|        0 |    0 |         0", output.getvalue())
+
+    def test_summary_handles_either_missing_total(self):
+        production_only = io.StringIO()
+        with contextlib.redirect_stdout(production_only):
+            car_company.show_summary(
+                FakeConnection(produced=[(1, 120)], sold=[])
+            )
+
+        sales_only = io.StringIO()
+        with contextlib.redirect_stdout(sales_only):
+            car_company.show_summary(
+                FakeConnection(produced=[], sold=[(1, 35)])
+            )
+
+        self.assertIn("|      120 |    0 |       120", production_only.getvalue())
+        self.assertIn("|        0 |   35 |       -35", sales_only.getvalue())
+
+    def test_summary_shows_negative_stock_when_sales_exceed_production(self):
+        output = io.StringIO()
+        connection = FakeConnection(produced=[(1, 10)], sold=[(1, 12)])
+
+        with contextlib.redirect_stdout(output):
+            car_company.show_summary(connection)
+
+        self.assertIn("|       10 |   12 |        -2", output.getvalue())
+
+    def test_screen_clear_uses_windows_command_for_interactive_terminal(self):
         output = FakeTerminal()
         input_terminal = FakeTerminal()
         with patch("car_company.sys.stdout", output):
             with patch("car_company.sys.stdin", input_terminal):
-                car_company.clear_screen()
+                with patch("car_company.os.name", "nt"):
+                    with patch("car_company.os.system") as system:
+                        car_company.clear_screen()
 
-        self.assertEqual(output.getvalue(), "\033[2J\033[H")
+        system.assert_called_once_with("cls")
+
+    def test_screen_clear_uses_unix_command_for_interactive_terminal(self):
+        with patch("car_company.sys.stdout", FakeTerminal()):
+            with patch("car_company.sys.stdin", FakeTerminal()):
+                with patch("car_company.os.name", "posix"):
+                    with patch("car_company.os.system") as system:
+                        car_company.clear_screen()
+
+        system.assert_called_once_with("clear")
 
     def test_screen_clear_is_skipped_when_output_is_redirected(self):
         output = io.StringIO()
         with patch("car_company.sys.stdout", output):
             with patch("car_company.sys.stdin", FakeTerminal()):
-                car_company.clear_screen()
+                with patch("car_company.os.system") as system:
+                    car_company.clear_screen()
 
         self.assertEqual(output.getvalue(), "")
+        system.assert_not_called()
 
     def test_heading_does_not_clear_context(self):
         output = io.StringIO()
