@@ -55,8 +55,8 @@ Update page numbers after arranging or printing the final report.
 
 ## Project Overview
 
-The [Car Company Database Management System](car_company.py) is a menu-driven Python program
-connected to a MySQL database. It stores car models and prices and records
+The [Car Company Database Management System](car_company.py) is a menu-driven
+Python program connected to a MySQL database. It stores car models and prices and records
 production and sales quantities by date. The program can display, add, update,
 and delete records, and show production, sales, and cars left for each model.
 
@@ -144,6 +144,8 @@ car. They also prevent a car from being deleted while related rows remain.
 Run `DESCRIBE cars;`, `DESCRIBE production;`, and `DESCRIBE sales;` in MySQL
 to see the complete server-formatted table definitions. The statements that
 create these tables are in [`create_tables()`](car_company.py#L87).
+The relationship is one-to-many: a car can have multiple production rows and
+multiple sales rows, and each row refers back to one car through `car_id`.
 
 ## Program Logic
 
@@ -156,6 +158,12 @@ create these tables are in [`create_tables()`](car_company.py#L87).
 7. Commit successful changes and roll back failed database operations.
 8. Calculate cars left as total production minus total sales for each car.
 9. Close the connection when the program exits.
+
+The connection and application lifecycle are managed by
+[`connect_to_database()`](car_company.py#L59) and [`main()`](car_company.py#L508).
+Car, production, and sales actions use shared functions for validation and SQL
+operations; see the [programming guide](PROGRAMMING_GUIDE.md#program-functions)
+for the function-by-function explanation.
 
 Python connects through MySQL Connector/Python. The program creates a cursor
 to execute SQL, uses `%s` placeholders for entered values, and commits or rolls
@@ -218,11 +226,16 @@ evidence of a personal test run; use output from your own database instead.
 Attach screenshots or printed output from an actual run if your teacher asks
 for them. Do not present the sample transcript as a screenshot of a real run.
 
-Run the [automated checks](tests/test_car_company.py) with
-`python -m unittest discover -s tests`. The current suite passes 16 tests using
-a fake database cursor; it does not replace
-testing the application against a running MySQL server. Record your own manual
-test results before submission.
+Run the [automated checks](tests/test_car_company.py) from the project folder:
+
+```sh
+python -m unittest discover -s tests
+```
+
+The current suite passes 16 tests using a fake database cursor. It checks input
+validation, summary values and formatting, screen handling, and startup cleanup;
+it does not replace testing against a running MySQL server. Record your own
+manual test results before submission.
 
 ## Limitations and Future Scope
 

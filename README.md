@@ -2,7 +2,7 @@
 
 **Documentation:** [Overview](README.md) · [Programming guide](PROGRAMMING_GUIDE.md) · [CBSE project report](project_report.md)
 
-**On this page:** [Database](#database-design) · [Requirements](#requirements) · [Download](#download-to-desktop) · [Run](#running-the-project) · [Menu](#menu-guide) · [Examples](#example-run) · [Testing](#testing-checklist)
+**On this page:** [Overview](#project-overview) · [Database](#database-design) · [Requirements](#requirements) · [Download](#download-to-desktop) · [Run](#running-the-project) · [Menu](#menu-guide) · [Examples](#example-run) · [Queries](#example-queries) · [Testing](#testing-checklist)
 
 ## Project Overview
 
@@ -15,6 +15,19 @@ At startup, the program asks for the MySQL connection details. The user enters
 car models, prices, dates, and quantities through the menus; no project data
 needs to be entered by editing the Python file. The program creates the chosen
 database and any missing tables. Existing records are kept.
+
+### At a glance
+
+| Item | Details |
+| --- | --- |
+| Interface | Numbered terminal menus for cars, production, sales, and summary. |
+| Storage | MySQL database; the selected database persists after the program exits. |
+| Runtime dependency | `mysql-connector-python`; see [requirements.txt](requirements.txt). |
+| Start point | [car_company.py](car_company.py) |
+| Tests | [tests/test_car_company.py](tests/test_car_company.py), run with `python -m unittest discover -s tests`. |
+
+Start with [requirements and setup](#requirements), or open the
+[programming guide](PROGRAMMING_GUIDE.md) for a detailed code walkthrough.
 
 ## Objectives
 

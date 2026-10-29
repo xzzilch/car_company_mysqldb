@@ -270,7 +270,7 @@ The MySQL connector returns rows as tuples. A car row has the shape `(car_id, mo
 - **[`print_heading(title)`](car_company.py#L47)** calculates a divider from the title length and prints the title between divider lines.
 - **[`pause_for_menu()`](car_company.py#L53)** waits for Enter after an action so its output is not immediately replaced by the next menu.
 - **[`connect_to_database()`](car_company.py#L59)** asks for host, user, password, and database. It accepts the documented defaults, validates the database identifier against letters, digits, and underscores, opens a server connection to create the database if needed, closes that temporary connection, then returns a connection scoped to the chosen database. The MySQL account therefore needs database/table creation permission.
-- **[`create_tables(connection)`](car_company.py#L87)** issues three `CREATE TABLE IF NOT EXISTS` statements, adds the primary-key, uniqueness, and foreign-key rules, commits the schema transaction, and closes its cursor even if an error occurs.
+- **[`create_tables(connection)`](car_company.py#L87)** issues three `CREATE TABLE IF NOT EXISTS` statements, adds the primary-key, uniqueness, and foreign-key rules, calls `commit()` after the statements, and closes its cursor even if an error occurs. MySQL implicitly commits DDL such as `CREATE TABLE`; this is not the same rollback behavior as ordinary row changes.
 
 The schema is described field-by-field in [Database Tables](#database-tables). The `cars` table is created first because `production.car_id` and `sales.car_id` refer to its primary key.
 
@@ -401,11 +401,17 @@ The test cases are grouped by behavior: [`InputValidationTests`](tests/test_car_
 1. Call [`read_model()`](car_company.py#L156) and [`read_price()`](car_company.py#L136) so values match the table's column rules.
 2. Create a cursor with `connection.cursor()`. A cursor sends SQL and reads query results for one connection.
 3. Call `cursor.execute(sql, values)`. The SQL contains `%s` markers and the values are passed as a tuple, keeping data separate from SQL syntax.
-4. Call `connection.commit()` after success so MySQL saves the change.
-5. If the connector raises `Error`, call `connection.rollback()` and show an explanation. This prevents a failed operation from being treated as saved.
+4. Call `connection.commit()` after success so MySQL saves the row change.
+5. If the connector raises `Error`, call `connection.rollback()` and show an explanation so the failed data operation is not left pending.
 6. Close the cursor in `finally`, which runs whether the operation succeeds or fails.
 
 Read operations such as [`fetch_cars()`](car_company.py#L199) follow the same cursor/cleanup pattern but call `fetchall()` and do not commit because they do not change data. [`create_tables()`](car_company.py#L87) is different only in that it executes several schema statements before one commit.
+
+MySQL treats many DDL statements, including `CREATE DATABASE` and `CREATE TABLE`, as implicit-commit operations. The program still calls `commit()` after creating tables, but a later rollback cannot undo a table that MySQL has already created. For normal `INSERT`, `UPDATE`, and `DELETE` operations, the explicit commit/rollback handling controls whether the row change is saved.
+
+### How menu choices reach operations
+
+[`main()`](car_company.py#L508) reads a choice and routes to the car manager, production manager, sales manager, summary, or exit. [`manage_cars()`](car_company.py#L462) uses a dictionary from menu numbers to functions, while [`manage_records()`](car_company.py#L486) uses a short `if`/`elif` chain for the shared production and sales actions. Both section menus clear the screen before drawing the next menu and pause after actions so the result remains visible. Option `0` returns to the previous menu; it does not delete data.
 
 ### Why the summary runs separate queries
 
