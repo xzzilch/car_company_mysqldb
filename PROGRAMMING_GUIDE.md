@@ -4,6 +4,16 @@ This guide explains how the Car Company Database works, from its MySQL tables
 to the Python functions that read and change them. The program stores records
 in MySQL rather than in a local project data file.
 
+### Class XII study focus
+
+Use the guide to connect familiar Python ideas such as variables, conditions,
+loops, functions, collections, and exception handling to a complete
+Python-MySQL project. The [project report](project_report.md) includes a
+concept map and viva-practice prompts. Terminal formatting, schema migration,
+and automated tests are supporting design choices; they are not presented as
+the complete CBSE syllabus. Check the syllabus and submission instructions for
+your academic session with your teacher.
+
 **Project documents:** [README](README.md) · [CBSE project report](project_report.md)
 
 **Recommended reading path:** For a first read, follow **System Requirements →

@@ -27,6 +27,13 @@ needs to be entered by editing the Python file. The program creates the chosen
 database and missing tables or columns. Existing records are kept, and newly
 added columns receive defaults when an older database is upgraded.
 
+For Class XII Computer Science study, the project brings together Python
+functions, conditions, loops, input validation, exception handling, Python-MySQL
+connectivity, relational tables, CRUD operations, joins, and grouped totals.
+The [project report](project_report.md) maps these ideas to the program and
+includes viva practice. Follow the syllabus and project format for your own
+academic session and school; this example is not a substitute for either.
+
 ### At a glance
 
 | Item | Details |

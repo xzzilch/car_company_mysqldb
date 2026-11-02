@@ -46,8 +46,10 @@ database concepts using MySQL.
 | Requirements | [Page] |
 | Database Design | [Page] |
 | Program Logic | [Page] |
+| CBSE Class XII Learning Alignment | [Page] |
 | SQL Concepts Demonstrated | [Page] |
 | Sample Run and Testing | [Page] |
+| Viva Practice | [Page] |
 | Limitations and Future Scope | [Page] |
 | Bibliography | [Page] |
 
@@ -82,7 +84,41 @@ source code and its functions.
 - Use `SUM` and `GROUP BY` to calculate totals for each car.
 - Calculate current cars left by subtracting recorded sales from recorded
   production dated on or before today.
+- Display a warning when recorded sales exceed recorded production, while
+  explaining that the program does not enforce stock limits.
 - Validate user input and handle common database errors.
+
+## CBSE Class XII Learning Alignment
+
+This map connects parts of the project to Python and database concepts studied
+at senior-secondary level. It is a project-specific study aid, not a claim that
+the program covers the full CBSE syllabus. Check the syllabus and practical
+submission instructions for the relevant academic session with your teacher.
+
+- **Input, output, variables, and data types:** Menu prompts and validation
+  functions show how text is checked and converted to suitable values.
+- **Conditions and loops:** The menus select actions, while validation loops
+  request input again when a value is invalid.
+- **Functions and modular programming:** Input helpers, database operations,
+  and report functions keep related tasks separate and reusable.
+- **Lists, tuples, and dictionaries:** MySQL rows, displayed records, and fixed
+  table metadata show how collections group values and support shared workflows.
+- **Exception handling:** Database operations and input parsing catch expected
+  errors and ensure resources are closed.
+- **Python-MySQL connectivity:** Connections, cursors, `execute()`, and fetch
+  methods show how Python sends SQL and receives rows.
+- **Relational database design:** The `cars`, `production`, and `sales` tables
+  use primary and foreign keys to connect records.
+- **SQL data definition and manipulation:** `CREATE`, `INSERT`, `SELECT`,
+  `UPDATE`, and `DELETE` define tables and change or retrieve records.
+- **Filtering, joining, and aggregation:** `WHERE`, `ORDER BY`, `JOIN`, `SUM`,
+  and `GROUP BY` select, combine, sort, and total records.
+- **Parameterized queries:** `%s` placeholders pass values separately from SQL
+  text, rather than joining user input into a query.
+
+The terminal-width formatting, schema migration, and automated test suite are
+additional implementation details. They support the project but should not be
+presented as required syllabus coverage.
 
 ## Requirements
 
@@ -265,6 +301,27 @@ screen handling, and startup cleanup. GitHub Actions runs this
 suite on pushes and pull requests to `main`. The automated tests do not replace
 testing against a running MySQL server. Record your own manual test results
 before submission.
+
+## Viva Practice
+
+Use these questions to practise explaining the project in your own words. Be
+ready to demonstrate the related menu operation using your own test database.
+
+1. What is the purpose of each of the three tables, and how are they related?
+2. What is the difference between a primary key and a foreign key in this
+  project?
+3. How does the program use a cursor to execute a query and fetch its results?
+4. Why are `%s` placeholders used when entered values are sent to MySQL?
+5. How does `JOIN` display a car model alongside a production or sales record?
+6. How do `SUM()` and `GROUP BY` contribute to the summary?
+7. What happens when invalid input is entered, or when a database operation
+  fails?
+8. Why can the cars-left value be negative, and what warning does the program
+  display in that case?
+
+Use your teacher's prescribed practical-file format. Replace the sample values
+and test-result placeholders with evidence from your own run; do not report an
+operation as tested unless you performed it.
 
 ## Limitations and Future Scope
 
