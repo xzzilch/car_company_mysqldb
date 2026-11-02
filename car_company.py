@@ -862,6 +862,7 @@ def show_summary(connection):
     sold = get_totals(connection, "sales", as_of)
     model_width = 30
     summary_rows = []
+    negative_stock_rows = []
     for car in cars:
         car_id, model = car[0], car[1]
         # A car without entries is still shown, with its missing total displayed as zero.
@@ -872,6 +873,8 @@ def show_summary(connection):
             model if len(model) <= model_width else f"{model[:model_width - 3]}..."
         )
         summary_rows.append((display_model, produced_count, sold_count, left_count))
+        if left_count < 0:
+            negative_stock_rows.append((display_model, abs(left_count)))
 
     print_table(
         ("Car model", "Produced", "Sold", "Cars left"),
@@ -879,6 +882,14 @@ def show_summary(connection):
         max_widths=(model_width, None, None, None),
         alignments=("<", ">", ">", ">"),
     )
+    if negative_stock_rows:
+        print("\nWARNING: Sales exceed recorded production for:")
+        print_table(
+            ("Car model", "Shortfall"),
+            negative_stock_rows,
+            max_widths=(model_width, None),
+            alignments=("<", ">"),
+        )
 
 
 # MENU AND PROGRAM FLOW

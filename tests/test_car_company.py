@@ -741,6 +741,9 @@ class SummaryTests(unittest.TestCase):
             car_company.show_summary(connection)
 
         self.assertIn("|       10 |   12 |        -2", output.getvalue())
+        self.assertIn("WARNING: Sales exceed recorded production", output.getvalue())
+        self.assertIn("Shortfall", output.getvalue())
+        self.assertRegex(output.getvalue(), r"City LX\s+\|\s+2")
 
     def test_summary_truncates_long_model_names_without_shifting_columns(self):
         connection = FakeConnection()
