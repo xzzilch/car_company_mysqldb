@@ -158,7 +158,7 @@ car. They also prevent a car from being deleted while related rows remain.
 
 Run `DESCRIBE cars;`, `DESCRIBE production;`, and `DESCRIBE sales;` in MySQL
 to see the complete server-formatted table definitions. The statements that
-create these tables are in [`create_tables()`](car_company.py#L245).
+create these tables are in [`create_tables()`](car_company.py#L247).
 The relationship is one-to-many: a car can have multiple production rows and
 multiple sales rows, and each row refers back to one car through `car_id`.
 
@@ -170,20 +170,25 @@ multiple sales rows, and each row refers back to one car through `car_id`.
 4. Display a main menu for cars, production, sales, summary, or exit.
 5. Validate values before sending them to MySQL.
 6. Use parameterized SQL values for inserts, updates, and deletes.
-7. Commit successful changes and roll back failed database operations.
+7. Autocommit each successful data-changing statement and attempt rollback
+   after database errors. With autocommit enabled, rollback cannot undo a
+   statement that MySQL has already committed.
 8. Calculate cars left as production minus sales dated on or before today's
    single captured local date; future-dated entries are treated as plans.
 9. Close the connection when the program exits.
 
 The connection and application lifecycle are managed by
-[`connect_to_database()`](car_company.py#L201) and [`main()`](car_company.py#L922).
+[`connect_to_database()`](car_company.py#L203) and [`main()`](car_company.py#L924).
 Car, production, and sales actions use shared functions for validation and SQL
-operations; see the [programming guide](PROGRAMMING_GUIDE.md#program-functions)
+operations; see the [programming guide](PROGRAMMING_GUIDE.md#application-architecture)
 for the function-by-function explanation.
 
 Python connects through MySQL Connector/Python. The program creates a cursor
 to execute SQL, uses `%s` placeholders for entered values, and commits or rolls
-back changes. Values are passed separately from SQL, as in this insert:
+back changes. Operation functions call `commit()` after successful writes and
+attempt `rollback()` after errors. Since autocommit is enabled, each successful
+write is already committed immediately, so rollback cannot undo it afterward.
+Values are passed separately from SQL, as in this insert:
 
 ```python
 cursor.execute(

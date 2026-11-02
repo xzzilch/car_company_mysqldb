@@ -15,7 +15,9 @@ Run with: python car_company.py
 The program asks for MySQL connection settings when it starts. It creates the
 selected database and missing tables automatically. Existing table data is
 kept. In this file, user input is checked before it is sent to MySQL, entered
-values use SQL placeholders, and each data change is committed or rolled back.
+values use SQL placeholders, and each successful data-changing statement is
+committed immediately through autocommit. Rollback is attempted after errors,
+but cannot undo a statement MySQL has already committed.
 """
 
 from datetime import date

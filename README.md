@@ -6,7 +6,11 @@
 
 **Project links:** [Report a bug](https://github.com/xzzilch/car_company_mysqldb/issues/new?template=bug_report.yml) · [Suggest an improvement](https://github.com/xzzilch/car_company_mysqldb/issues/new?template=feature_request.yml) · [Contributing](CONTRIBUTING.md)
 
-**On this page:** [Overview](#project-overview) · [Architecture](#how-the-parts-fit-together) · [Database](#database-design) · [Requirements](#requirements) · [Download](#download-to-desktop) · [Run](#running-the-project) · [Menu](#menu-guide) · [Examples](#example-run) · [Queries](#example-queries) · [Testing](#testing-checklist)
+Use this page to install, run, and operate the program. The
+[programming guide](PROGRAMMING_GUIDE.md) explains the implementation; the
+[project report](project_report.md) is a school-submission template.
+
+**On this page:** [Overview](#project-overview) · [Architecture](#how-the-parts-fit-together) · [Data model](#data-model) · [Requirements](#requirements) · [Download](#download-to-desktop) · [Run](#running-the-project) · [Menu](#menu-guide) · [Example](#quick-example) · [Testing](#testing)
 
 ## Project Overview
 
@@ -51,51 +55,15 @@ MySQL stores the car, production, and sales records between runs. The
 [programming guide](PROGRAMMING_GUIDE.md#program-flow) shows the detailed
 startup and menu flow.
 
-## Objectives
+## Data Model
 
-- Store company data in related MySQL tables.
-- Use a primary key to identify each row.
-- Use foreign keys to connect production and sales records to a car.
-- Perform the basic database operations: insert, display, update, and delete.
-- Use SQL queries to display joined information and calculate totals.
-- Provide a simple menu so the program can be used without editing its code.
-
-## Database Design
-
-The database contains three tables:
+The database has three related tables:
 
 | Table | Purpose |
 | --- | --- |
 | `cars` | One row for each car model and its price. |
 | `production` | One row for each production entry. |
 | `sales` | One row for each sales entry. |
-
-### Table fields
-
-| Table | Field | Meaning |
-| --- | --- | --- |
-| `cars` | `car_id` | Unique number for a car; primary key and automatically generated. |
-| `cars` | `model` | Car model name; required and unique. |
-| `cars` | `price` | Price in rupees, stored with two decimal places. |
-| `cars` | `manufacturer` | Manufacturer name (`VARCHAR(50)`). |
-| `cars` | `model_year` | Model year (`SMALLINT UNSIGNED`). |
-| `cars` | `color` | Vehicle color (`VARCHAR(30)`). |
-| `cars` | `is_electric` | Whether the car is electric (`BOOLEAN`). |
-| `production` | `production_id` | Unique number for a production entry; primary key. |
-| `production` | `car_id` | The car produced; foreign key referring to `cars.car_id`. |
-| `production` | `production_date` | Date the production entry was recorded. |
-| `production` | `quantity` | Number of cars produced in this entry. |
-| `production` | `shift` | Production shift (`VARCHAR(20)`). |
-| `production` | `quality_checked` | Whether quality checks passed (`BOOLEAN`). |
-| `sales` | `sale_id` | Unique number for a sales entry; primary key. |
-| `sales` | `car_id` | The car sold; foreign key referring to `cars.car_id`. |
-| `sales` | `sale_date` | Date the sales entry was recorded. |
-| `sales` | `quantity` | Number of cars sold in this entry. |
-| `sales` | `sales_channel` | Sales channel (`VARCHAR(30)`). |
-| `sales` | `payment_method` | Payment method (`VARCHAR(20)`). |
-| `sales` | `warranty_months` | Warranty length (`SMALLINT UNSIGNED`). |
-
-### Relationship
 
 One car can have many production entries and many sales entries. Each
 production or sales entry belongs to one car:
@@ -105,28 +73,10 @@ cars (one) ------ (many) production
 cars (one) ------ (many) sales
 ```
 
-The foreign keys prevent a production or sales entry from referring to a car
-that is not in the `cars` table. MySQL also prevents deleting a car while
-production or sales entries still refer to it. Delete those entries first if
-the car is no longer needed.
-
-## SQL Concepts Used
-
-- `CREATE DATABASE` and `CREATE TABLE` create the database structure.
-- `PRIMARY KEY` uniquely identifies a row.
-- `AUTO_INCREMENT` lets MySQL assign new ID values.
-- `NOT NULL` requires a value; `UNIQUE` prevents duplicate model names.
-- `FOREIGN KEY` maintains the relationship between tables.
-- `INSERT` adds a row, `SELECT` displays rows, `UPDATE` changes a row, and
-  `DELETE` removes a row.
-- `WHERE` selects the row to change or remove. `ORDER BY` sorts displayed rows.
-- `JOIN` displays a car model with its production or sales records.
-- `SUM` calculates totals, and `GROUP BY` calculates a separate total for each
-  car.
-
-Python sends entered values to MySQL using `%s` placeholders. This keeps the
-user's data separate from the SQL command. Table and column names used in
-queries come only from fixed choices inside the program.
+Foreign keys prevent production or sales entries from referring to a missing
+car, and prevent deleting a car while related entries remain. The full
+field-by-field schema and SQL explanation are in the
+[programming guide](PROGRAMMING_GUIDE.md#database-tables).
 
 ## Requirements
 
@@ -242,7 +192,7 @@ Quantities and IDs must be positive whole numbers that fit the MySQL `INT`
 type. A car model must contain 1 to 50 characters and cannot duplicate another
 model.
 
-## Example Run
+## Quick Example
 
 The examples below show the current menus and sample inputs. Text in square
 brackets is an explanation, not something to type. The password is not echoed
@@ -311,7 +261,7 @@ ID | Model   |          Price | Manufacturer | Year | Color | Electric
 ---+---------+----------------+--------------+------+-------+---------
  1 | City LX | Rs. 1250000.00 | Honda        | 2026 | Blue  | No
   > Car ID: 1
-  > Production date (YYYY-MM-DD, future dates allowed) [today]: 2026-10-23
+  > Production date (YYYY-MM-DD, future dates allowed) [today]: [today's date]
   > Quantity: 120
   > Production shift: Day
   > Quality checked? (y/n): y
@@ -343,7 +293,7 @@ ID | Model   |          Price | Manufacturer | Year | Color | Electric
 ---+---------+----------------+--------------+------+-------+---------
  1 | City LX | Rs. 1250000.00 | Honda        | 2026 | Blue  | No
   > Car ID: 1
-  > Sale date (YYYY-MM-DD, future dates allowed) [today]: 2026-10-23
+  > Sale date (YYYY-MM-DD, future dates allowed) [today]: [today's date]
   > Quantity: 35
   > Sales channel: Dealer
   > Payment method: Bank transfer
@@ -363,7 +313,7 @@ Choose an option: 0
   > Choose an option: 4
 
 [PRODUCTION AND SALES SUMMARY]
-  Totals through 2026-11-02 (future-dated entries excluded)
+  Totals through [today's local date] (future-dated entries excluded)
 Car model                      | Produced | Sold | Cars left
 -------------------------------+----------+------+----------
 City LX                        |      120 |   35 |        85
@@ -376,49 +326,7 @@ A missing total is shown as zero. Negative values remain visible because the
 program does not enforce stock limits. Long model names are abbreviated for
 display only; the saved name is unchanged.
 
-## Example Queries
-
-The following are representative queries used by the program. The Python
-program uses placeholders when values come from the user.
-
-Display cars in ID order:
-
-```sql
-SELECT car_id, model, price, manufacturer, model_year, color, is_electric
-FROM cars
-ORDER BY car_id;
-```
-
-Display production entries with their car model:
-
-```sql
-SELECT production.production_id, cars.model,
-       production.production_date, production.quantity,
-       production.shift, production.quality_checked
-FROM production
-JOIN cars ON production.car_id = cars.car_id
-ORDER BY production.production_id;
-```
-
-Calculate the production total for each car ID:
-
-```sql
-SELECT car_id, SUM(quantity)
-FROM production
-WHERE production_date <= %s
-GROUP BY car_id;
-```
-
-The summary menu runs this grouped query once for production and once for
-sales. It displays zero when a car has no matching entries. Keeping the totals
-separate avoids counting entries more than once when both tables contain
-multiple rows for the same car. The application captures one local date for
-the whole report and binds it as a parameter, so future-dated planned activity
-does not affect today's summary. The `Cars left` column is counted production
-minus counted sales; negative values indicate that recorded sales exceed
-counted production.
-
-## Testing Checklist
+## Testing
 
 - Start the program and confirm it creates the database and tables.
 - Add a car, then view the Cars list to verify it was saved.
