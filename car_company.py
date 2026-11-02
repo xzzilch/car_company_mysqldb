@@ -33,6 +33,10 @@ import unicodedata
 import mysql.connector
 from mysql.connector import Error
 
+class DatabaseRollbackError(Error):
+    """Signal that a rollback failed after its details were already reported."""
+
+
 DATABASE_DEFAULT = "car_company"
 EARLIEST_MODEL_YEAR = 1886
 MODEL_YEAR_FUTURE_LIMIT = 2
@@ -147,7 +151,10 @@ def print_table(headers, rows, max_widths=None, alignments=None):
         raise ValueError("Column alignments must be '<' or '>'.")
 
     widths = [
-        max(display_width(header), *(display_width(row[index]) for row in rows))
+        max(
+            [display_width(header)]
+            + [display_width(row[index]) for row in rows]
+        )
         for index, header in enumerate(headers)
     ]
     if max_widths:
@@ -482,7 +489,7 @@ def report_database_error(connection, error, message):
     except Error as rollback_error:
         print("Could not roll back the failed database operation.")
         show_error_details(rollback_error)
-        raise
+        raise DatabaseRollbackError(str(rollback_error)) from rollback_error
 
 
 def close_cursor(cursor):
@@ -998,6 +1005,9 @@ def main():
                 else:
                     print("Invalid option. Enter 1, 2, 3, 4, or 0.")
                     pause_for_menu()
+            except DatabaseRollbackError:
+                print("The database connection was lost. Exiting the program.")
+                break
             except Error as error:
                 # A failed query returns the user to the menu instead of ending the program.
                 print("A database operation failed.")

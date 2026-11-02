@@ -54,9 +54,17 @@ class FakeConnection:
 class FakeStartupConnection:
     def __init__(self):
         self.closed = False
+        self.rollback_calls = 0
+
+    def is_connected(self):
+        return True
 
     def close(self):
         self.closed = True
+
+    def rollback(self):
+        self.rollback_calls += 1
+        raise car_company.Error("rollback failed")
 
 
 class FakeTerminal(io.StringIO):
@@ -672,6 +680,15 @@ class SummaryTests(unittest.TestCase):
         self.assertIn(r"\x1b[31m", output.getvalue())
         self.assertIn(r"\n", output.getvalue())
 
+    def test_table_prints_headers_when_rows_are_empty(self):
+        output = io.StringIO()
+
+        with contextlib.redirect_stdout(output):
+            car_company.print_table(("ID", "Model"), [])
+
+        self.assertIn("ID", output.getvalue())
+        self.assertIn("Model", output.getvalue())
+
     def test_table_rejects_mismatched_rows_or_layout(self):
         with self.assertRaisesRegex(ValueError, "same number of cells"):
             car_company.print_table(("ID", "Model"), [(1,)])
@@ -813,6 +830,36 @@ class StartupCleanupTests(unittest.TestCase):
                 with contextlib.redirect_stdout(output):
                     car_company.main()
 
+        self.assertTrue(connection.closed)
+
+    def test_main_exits_without_reporting_rollback_failure_twice(self):
+        connection = FakeStartupConnection()
+        output = io.StringIO()
+
+        def fail_car_operation(active_connection):
+            car_company.report_database_error(
+                active_connection,
+                car_company.Error("write failed"),
+                "Could not add car.",
+            )
+
+        with patch("car_company.connect_to_database", return_value=connection):
+            with patch("car_company.create_tables"):
+                with patch("car_company.clear_screen"):
+                    with patch("car_company.print_heading"):
+                        with patch("car_company.read_input", return_value="1"):
+                            with patch(
+                                "car_company.manage_cars",
+                                side_effect=fail_car_operation,
+                            ):
+                                with contextlib.redirect_stdout(output):
+                                    car_company.main()
+
+        self.assertEqual(output.getvalue().count("write failed"), 1)
+        self.assertEqual(output.getvalue().count("rollback failed"), 1)
+        self.assertEqual(connection.rollback_calls, 1)
+        self.assertNotIn("A database operation failed.", output.getvalue())
+        self.assertIn("The database connection was lost.", output.getvalue())
         self.assertTrue(connection.closed)
 
 
