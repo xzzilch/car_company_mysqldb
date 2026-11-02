@@ -13,12 +13,15 @@
 This menu-driven project uses Python and MySQL to manage basic car company
 records. It stores car models and prices, records production and sales by date,
 allows saved rows to be updated or deleted, and displays production, sales, and
-cars-left totals for each model.
+cars-left totals for each model. Car records include manufacturer, year, color,
+and electric status; production and sales records include their operational
+details.
 
 At startup, the program asks for the MySQL connection details. The user enters
-car models, prices, dates, and quantities through the menus; no project data
+car details, production and sales fields through the menus; no project data
 needs to be entered by editing the Python file. The program creates the chosen
-database and any missing tables. Existing records are kept.
+database and missing tables or columns. Existing records are kept, and newly
+added columns receive defaults when an older database is upgraded.
 
 ### At a glance
 
@@ -74,14 +77,23 @@ The database contains three tables:
 | `cars` | `car_id` | Unique number for a car; primary key and automatically generated. |
 | `cars` | `model` | Car model name; required and unique. |
 | `cars` | `price` | Price in rupees, stored with two decimal places. |
+| `cars` | `manufacturer` | Manufacturer name (`VARCHAR(50)`). |
+| `cars` | `model_year` | Model year (`SMALLINT UNSIGNED`). |
+| `cars` | `color` | Vehicle color (`VARCHAR(30)`). |
+| `cars` | `is_electric` | Whether the car is electric (`BOOLEAN`). |
 | `production` | `production_id` | Unique number for a production entry; primary key. |
 | `production` | `car_id` | The car produced; foreign key referring to `cars.car_id`. |
 | `production` | `production_date` | Date the production entry was recorded. |
 | `production` | `quantity` | Number of cars produced in this entry. |
+| `production` | `shift` | Production shift (`VARCHAR(20)`). |
+| `production` | `quality_checked` | Whether quality checks passed (`BOOLEAN`). |
 | `sales` | `sale_id` | Unique number for a sales entry; primary key. |
 | `sales` | `car_id` | The car sold; foreign key referring to `cars.car_id`. |
 | `sales` | `sale_date` | Date the sales entry was recorded. |
 | `sales` | `quantity` | Number of cars sold in this entry. |
+| `sales` | `sales_channel` | Sales channel (`VARCHAR(30)`). |
+| `sales` | `payment_method` | Payment method (`VARCHAR(20)`). |
+| `sales` | `warranty_months` | Warranty length (`SMALLINT UNSIGNED`). |
 
 ### Relationship
 
@@ -190,7 +202,9 @@ On systems where Python 3 is run as `python3`, replace `python` with `python3`.
 When both input and output use an interactive terminal, each menu redraw clears
 the previous menu. Lists shown during an add or update stay on screen while you
 enter values. After an action, press Enter to read its result and return to the
-menu. Screen clearing is skipped in non-interactive use.
+menu. Menus use numbered vertical choices, and the choice prompt is separated
+by an underscore line. Data lists use compact, terminal-width-aware tables.
+Screen clearing is skipped in non-interactive use.
 
 At startup, enter the MySQL host and username. Press Enter to accept the
 suggested host (`localhost`), username (`root`), or database name
@@ -219,8 +233,10 @@ provides these actions:
 For a production or sales entry, first add the car in **Manage cars**. Use a
 car ID shown in the list. Update and delete operations also accept only IDs
 shown in the relevant list. Dates must use `YYYY-MM-DD` and fall within
-MySQL's `1000-01-01` to `9999-12-31` range. When adding an entry,
-press Enter at the date prompt to use today's date; updates require a date.
+MySQL's `1000-01-01` to `9999-12-31` range. Future production and sales dates
+are allowed; each prompt names the type of date being entered. When adding an
+entry, press Enter at the date prompt to use today's date; updates require a
+date.
 Prices must be greater than zero and have at most two decimal places.
 Quantities and IDs must be positive whole numbers that fit the MySQL `INT`
 type. A car model must contain 1 to 50 characters and cannot duplicate another
@@ -228,39 +244,45 @@ model.
 
 ## Example Run
 
-The examples below show a fresh database and sample inputs. Text in square
+The examples below show the current menus and sample inputs. Text in square
 brackets is an explanation, not something to type. The password is not echoed
 by the terminal. Automatically assigned IDs can differ if the database already
-contains records. Repeated menu redraws and "Press Enter to continue" prompts
-are omitted where they do not change the example.
+contains records. For brevity, framed headings and repeated menu redraws are
+abbreviated.
 
 ### Start and Add a Car
 
 ```text
 $ python car_company.py
 
------------------------
-  DATABASE CONNECTION
------------------------
-MySQL host [localhost]: [press Enter]
-MySQL username [root]: [press Enter]
-MySQL password (press Enter if none): [press Enter; input stays hidden]
-Database name [car_company]: [press Enter]
+  > MySQL host [localhost]: [press Enter]
+  > MySQL username [root]: [press Enter]
+  > MySQL password (input hidden; press Enter if none)
+  > Database name [car_company]: [press Enter]
 
--------------
-  MAIN MENU
--------------
-1 Cars | 2 Production | 3 Sales
-4 Summary | 0 Exit
-Choose an option: 1
+[CAR COMPANY DATABASE]
+  1  Manage cars
+  2  Manage production
+  3  Manage sales
+  4  View production and sales summary
+  0  Exit
+  ________________________________________
+  > Choose an option: 1
 
--------------
-  CARS MENU
--------------
-1 View | 2 Add | 3 Update | 4 Delete | 0 Back
-Choose an option: 2
-Car model: City LX
-Price (Rs.): 1250000.00
+[CAR MANAGEMENT]
+  1  View cars
+  2  Add a car
+  3  Update a car
+  4  Delete a car
+  0  Back to main menu
+  ________________________________________
+  > Choose an option: 2
+  > Car model: City LX
+  > Price (Rs.): 1250000.00
+  > Manufacturer: Honda
+  > Model year (1886-[current year + 2]): 2026
+  > Color: Blue
+  > Electric? (y/n): n
 Car added.
 ```
 
@@ -272,26 +294,27 @@ Continuing the same run, choose `0` to return to the main menu, then choose
 ```text
 Choose an option: 0
 
--------------
-  MAIN MENU
--------------
-1 Cars | 2 Production | 3 Sales
-4 Summary | 0 Exit
-Choose an option: 2
+  > Choose an option: 0
+  > Choose an option: 2
 
--------------------
-  PRODUCTION MENU
--------------------
-1 View | 2 Add | 3 Update | 4 Delete | 0 Back
-Choose an option: 2
+[PRODUCTION MANAGEMENT]
+  1  View production records
+  2  Add a production record
+  3  Update a production record
+  4  Delete a production record
+  0  Back to main menu
+  ________________________________________
+  > Choose an option: 2
 
---------
-  CARS
---------
-ID 1 | City LX | Rs. 1250000.00
-Car ID: 1
-Date (YYYY-MM-DD) [today]: 2026-10-23
-Quantity: 120
+[CARS]
+ID | Model   |          Price | Manufacturer | Year | Color | Electric
+---+---------+----------------+--------------+------+-------+---------
+ 1 | City LX | Rs. 1250000.00 | Honda        | 2026 | Blue  | No
+  > Car ID: 1
+  > Production date (YYYY-MM-DD, future dates allowed) [today]: 2026-10-23
+  > Quantity: 120
+  > Production shift: Day
+  > Quality checked? (y/n): y
 Record added.
 ```
 
@@ -303,26 +326,28 @@ record. This example uses the same car:
 ```text
 Choose an option: 0
 
--------------
-  MAIN MENU
--------------
-1 Cars | 2 Production | 3 Sales
-4 Summary | 0 Exit
-Choose an option: 3
+  > Choose an option: 0
+  > Choose an option: 3
 
---------------
-  SALES MENU
---------------
-1 View | 2 Add | 3 Update | 4 Delete | 0 Back
-Choose an option: 2
+[SALES MANAGEMENT]
+  1  View sales records
+  2  Add a sales record
+  3  Update a sales record
+  4  Delete a sales record
+  0  Back to main menu
+  ________________________________________
+  > Choose an option: 2
 
---------
-  CARS
---------
-ID 1 | City LX | Rs. 1250000.00
-Car ID: 1
-Date (YYYY-MM-DD) [today]: 2026-10-23
-Quantity: 35
+[CARS]
+ID | Model   |          Price | Manufacturer | Year | Color | Electric
+---+---------+----------------+--------------+------+-------+---------
+ 1 | City LX | Rs. 1250000.00 | Honda        | 2026 | Blue  | No
+  > Car ID: 1
+  > Sale date (YYYY-MM-DD, future dates allowed) [today]: 2026-10-23
+  > Quantity: 35
+  > Sales channel: Dealer
+  > Payment method: Bank transfer
+  > Warranty months (0-65535): 24
 Record added.
 ```
 
@@ -334,25 +359,22 @@ production and sales records above, the output is:
 ```text
 Choose an option: 0
 
--------------
-  MAIN MENU
--------------
-1 Cars | 2 Production | 3 Sales
-4 Summary | 0 Exit
-Choose an option: 4
+  > Choose an option: 0
+  > Choose an option: 4
 
---------------------------------
-  PRODUCTION AND SALES SUMMARY
---------------------------------
+[PRODUCTION AND SALES SUMMARY]
+  Totals through 2026-11-02 (future-dated entries excluded)
 Car model                      | Produced | Sold | Cars left
+-------------------------------+----------+------+----------
 City LX                        |      120 |   35 |        85
 ```
 
-The `Cars left` value is total production minus total sales. A missing total is
-shown as zero. Negative values are shown as-is to make sales exceeding
-production visible; the program does not enforce stock limits. Long model names
-are abbreviated in this summary so the numeric columns stay aligned; the saved
-name is unchanged.
+The summary counts production and sales dated on or before the computer's
+current local date; future-dated entries are treated as plans and are not
+included yet. The `Cars left` value is counted production minus counted sales.
+A missing total is shown as zero. Negative values remain visible because the
+program does not enforce stock limits. Long model names are abbreviated for
+display only; the saved name is unchanged.
 
 ## Example Queries
 
@@ -362,7 +384,7 @@ program uses placeholders when values come from the user.
 Display cars in ID order:
 
 ```sql
-SELECT car_id, model, price
+SELECT car_id, model, price, manufacturer, model_year, color, is_electric
 FROM cars
 ORDER BY car_id;
 ```
@@ -371,7 +393,8 @@ Display production entries with their car model:
 
 ```sql
 SELECT production.production_id, cars.model,
-       production.production_date, production.quantity
+       production.production_date, production.quantity,
+       production.shift, production.quality_checked
 FROM production
 JOIN cars ON production.car_id = cars.car_id
 ORDER BY production.production_id;
@@ -382,14 +405,18 @@ Calculate the production total for each car ID:
 ```sql
 SELECT car_id, SUM(quantity)
 FROM production
+WHERE production_date <= %s
 GROUP BY car_id;
 ```
 
 The summary menu runs this grouped query once for production and once for
 sales. It displays zero when a car has no matching entries. Keeping the totals
 separate avoids counting entries more than once when both tables contain
-multiple rows for the same car. The `Cars left` column is production minus
-sales; negative values indicate that recorded sales exceed recorded production.
+multiple rows for the same car. The application captures one local date for
+the whole report and binds it as a parameter, so future-dated planned activity
+does not affect today's summary. The `Cars left` column is counted production
+minus counted sales; negative values indicate that recorded sales exceed
+counted production.
 
 ## Testing Checklist
 
@@ -405,9 +432,12 @@ sales; negative values indicate that recorded sales exceed recorded production.
 - Try deleting a car that still has related entries and confirm MySQL protects
   the relationship.
 - View the summary and compare its totals with the entries entered.
+- Add future-dated production or sales entries and verify they do not affect
+  the current summary until that date is reached.
 
 The [automated tests](tests/test_car_company.py) cover input validation,
-delete confirmation, summary output, screen handling, and startup cleanup. They
+typed-field CRUD, existing-schema migration, database error handling, delete
+confirmation, summary output, screen handling, and startup cleanup. They
 use Python's built-in `unittest` module and do not need a running MySQL server.
 Run them from the project folder:
 

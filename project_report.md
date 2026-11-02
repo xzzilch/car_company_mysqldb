@@ -59,10 +59,15 @@ The [Car Company Database Management System](car_company.py) is a menu-driven
 Python program connected to a MySQL database. It stores car models and prices and records
 production and sales quantities by date. The program can display, add, update,
 and delete records, and show production, sales, and cars left for each model.
+Car entries also record manufacturer, model year, color, and electric status.
+Production entries track shift and quality checks, while sales entries track
+channel, payment method, and warranty length.
 
-The program creates the selected database and any missing tables when it
-starts. The user supplies connection details and enters project data through
-the menus instead of changing variables in the source code.
+The program creates the selected database and any missing tables or columns
+when it starts. Existing rows are preserved; newly added columns receive
+defaults when an older database is upgraded. The user supplies connection
+details and enters project data through the menus instead of changing
+variables in the source code.
 
 See the [README](README.md) for setup and sample runs, and the
 [programming guide](PROGRAMMING_GUIDE.md) for detailed explanations of the
@@ -75,7 +80,8 @@ source code and its functions.
 - Perform insert, display, update, and delete operations.
 - Use a join to display record details with a car model.
 - Use `SUM` and `GROUP BY` to calculate totals for each car.
-- Calculate cars left by subtracting total sales from total production.
+- Calculate current cars left by subtracting recorded sales from recorded
+  production dated on or before today.
 - Validate user input and handle common database errors.
 
 ## Requirements
@@ -132,18 +138,27 @@ car. They also prevent a car from being deleted while related rows remain.
 | `cars` | `car_id` | `INT` | Primary key, auto-increment |
 | `cars` | `model` | `VARCHAR(50)` | Required, unique |
 | `cars` | `price` | `DECIMAL(10,2)` | Required |
+| `cars` | `manufacturer` | `VARCHAR(50)` | Required; defaults to `Unknown` for existing rows |
+| `cars` | `model_year` | `SMALLINT UNSIGNED` | Required; defaults to 2000 for existing rows |
+| `cars` | `color` | `VARCHAR(30)` | Required; defaults to `Unknown` for existing rows |
+| `cars` | `is_electric` | `BOOLEAN` | Required; defaults to false for existing rows |
 | `production` | `production_id` | `INT` | Primary key, auto-increment |
 | `production` | `car_id` | `INT` | Foreign key to `cars.car_id` |
 | `production` | `production_date` | `DATE` | Required |
 | `production` | `quantity` | `INT` | Required |
+| `production` | `shift` | `VARCHAR(20)` | Required; defaults to `Day` for existing rows |
+| `production` | `quality_checked` | `BOOLEAN` | Required; defaults to false for existing rows |
 | `sales` | `sale_id` | `INT` | Primary key, auto-increment |
 | `sales` | `car_id` | `INT` | Foreign key to `cars.car_id` |
 | `sales` | `sale_date` | `DATE` | Required |
 | `sales` | `quantity` | `INT` | Required |
+| `sales` | `sales_channel` | `VARCHAR(30)` | Required; defaults to `Other` for existing rows |
+| `sales` | `payment_method` | `VARCHAR(20)` | Required; defaults to `Other` for existing rows |
+| `sales` | `warranty_months` | `SMALLINT UNSIGNED` | Required; defaults to 0 for existing rows |
 
 Run `DESCRIBE cars;`, `DESCRIBE production;`, and `DESCRIBE sales;` in MySQL
 to see the complete server-formatted table definitions. The statements that
-create these tables are in [`create_tables()`](car_company.py#L87).
+create these tables are in [`create_tables()`](car_company.py#L245).
 The relationship is one-to-many: a car can have multiple production rows and
 multiple sales rows, and each row refers back to one car through `car_id`.
 
@@ -156,11 +171,12 @@ multiple sales rows, and each row refers back to one car through `car_id`.
 5. Validate values before sending them to MySQL.
 6. Use parameterized SQL values for inserts, updates, and deletes.
 7. Commit successful changes and roll back failed database operations.
-8. Calculate cars left as total production minus total sales for each car.
+8. Calculate cars left as production minus sales dated on or before today's
+   single captured local date; future-dated entries are treated as plans.
 9. Close the connection when the program exits.
 
 The connection and application lifecycle are managed by
-[`connect_to_database()`](car_company.py#L59) and [`main()`](car_company.py#L508).
+[`connect_to_database()`](car_company.py#L201) and [`main()`](car_company.py#L922).
 Car, production, and sales actions use shared functions for validation and SQL
 operations; see the [programming guide](PROGRAMMING_GUIDE.md#program-functions)
 for the function-by-function explanation.
@@ -201,7 +217,8 @@ GROUP BY car_id;
 This query joins production entries to cars to show each entry's model:
 
 ```sql
-SELECT p.production_id, c.model, p.production_date, p.quantity
+SELECT p.production_id, c.model, p.production_date, p.quantity,
+       p.shift, p.quality_checked
 FROM production AS p
 JOIN cars AS c ON c.car_id = p.car_id
 ORDER BY p.production_id;
@@ -226,7 +243,7 @@ evidence of a personal test run; use output from your own database instead.
 | Confirm a deletion | Only `y` confirms; invalid answers are rejected. | [Pass/Fail] |
 | Enter an invalid date or number | The program asks for valid input again. | [Pass/Fail] |
 | Delete a car with linked records | MySQL prevents deletion because of the foreign key. | [Pass/Fail] |
-| View the summary | Production, sales, and cars-left values match entered rows. | [Pass/Fail] |
+| View the summary | Production/sales entries through today and cars-left values match; future entries are excluded. | [Pass/Fail] |
 
 Attach screenshots or printed output from an actual run if your teacher asks
 for them. Do not present the sample transcript as a screenshot of a real run.
@@ -237,8 +254,9 @@ Run the [automated checks](tests/test_car_company.py) from the project folder:
 python -m unittest discover -s tests
 ```
 
-The tests use fake database objects and check input validation, summary values
-and formatting, screen handling, and startup cleanup. GitHub Actions runs this
+The tests use fake database objects and check input validation, typed-field
+CRUD, schema migration, database error handling, summary values and formatting,
+screen handling, and startup cleanup. GitHub Actions runs this
 suite on pushes and pull requests to `main`. The automated tests do not replace
 testing against a running MySQL server. Record your own manual test results
 before submission.
@@ -246,8 +264,9 @@ before submission.
 ## Limitations and Future Scope
 
 This project demonstrates basic database operations. Its cars-left value is a
-simple production-minus-sales total; negative values can appear if more sales
-than production are entered. It does not enforce inventory limits, manage
+simple production-minus-sales total through the current date; future-dated
+entries are excluded. Negative values can appear if more sales than production
+are recorded. It does not enforce inventory limits, manage
 staff accounts, create invoices, or provide a graphical interface. Future
 improvements could include date-wise reports and user accounts with different
 permissions.
