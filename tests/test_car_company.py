@@ -80,8 +80,9 @@ class FakeUpdateCursor:
 
 
 class FakeSchemaCursor:
-    def __init__(self, schemas):
+    def __init__(self, schemas, race_on_alter=None):
         self.schemas = schemas
+        self.race_on_alter = race_on_alter
         self.rows = []
         self.queries = []
 
@@ -92,6 +93,12 @@ class FakeSchemaCursor:
             self.rows = [(name,) for name in self.schemas[table]]
         elif query.startswith("ALTER TABLE"):
             table, column = query.split("`")[1], query.split("`")[3]
+            if self.race_on_alter == (table, column):
+                self.schemas[table].add(column)
+                self.race_on_alter = None
+                raise car_company.Error(
+                    f"Duplicate column name '{column}'", errno=1060
+                )
             self.schemas[table].add(column)
 
     def fetchall(self):
@@ -102,7 +109,7 @@ class FakeSchemaCursor:
 
 
 class FakeSchemaConnection:
-    def __init__(self):
+    def __init__(self, race_on_alter=None):
         self.schemas = {
             "cars": {"car_id", "model", "price"},
             "production": {
@@ -113,7 +120,7 @@ class FakeSchemaConnection:
             },
             "sales": {"sale_id", "car_id", "sale_date", "quantity"},
         }
-        self.query_cursor = FakeSchemaCursor(self.schemas)
+        self.query_cursor = FakeSchemaCursor(self.schemas, race_on_alter)
         self.committed = False
 
     def cursor(self):
@@ -333,6 +340,16 @@ class InputValidationTests(unittest.TestCase):
 
 
 class SchemaMigrationTests(unittest.TestCase):
+    def test_duplicate_column_from_concurrent_migration_is_treated_as_complete(self):
+        connection = FakeSchemaConnection(race_on_alter=("cars", "manufacturer"))
+
+        car_company.create_tables(connection)
+
+        self.assertTrue(
+            set(car_company.CAR_COLUMNS).issubset(connection.schemas["cars"])
+        )
+        self.assertTrue(connection.committed)
+
     def test_new_columns_are_added_to_existing_tables_without_dropping_data(self):
         connection = FakeSchemaConnection()
 

@@ -294,9 +294,13 @@ def create_tables(connection):
             existing_columns = {column[0] for column in cursor.fetchall()}
             for column, definition in columns.items():
                 if column not in existing_columns:
-                    cursor.execute(
-                        f"ALTER TABLE `{table}` ADD COLUMN `{column}` {definition}"
-                    )
+                    try:
+                        cursor.execute(
+                            f"ALTER TABLE `{table}` ADD COLUMN `{column}` {definition}"
+                        )
+                    except Error as error:
+                        if error.errno != 1060:
+                            raise
         connection.commit()
     finally:
         close_cursor(cursor)
