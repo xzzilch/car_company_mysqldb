@@ -361,7 +361,7 @@ def read_price(message):
         value = read_input(message).strip()
         if not re.fullmatch(price_pattern, value):
             print(
-                "Enter a price over zero, up to 99,999,999.99, "
+                "Enter a price greater than zero, up to 99,999,999.99, "
                 "with at most two decimals."
             )
             continue
@@ -375,7 +375,7 @@ def read_price(message):
                 and price.as_tuple().exponent >= -2):
             return price
         print(
-            "Enter a price over zero, up to 99,999,999.99, "
+            "Enter a price greater than zero, up to 99,999,999.99, "
             "with at most two decimals."
         )
 
@@ -446,7 +446,10 @@ def read_date(message, default_today=False):
         if not value and default_today:
             return date.today().isoformat()
         if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
-            print("Please enter a valid date in YYYY-MM-DD format.")
+            print(
+                "Enter a valid date in YYYY-MM-DD format, from "
+                "1000-01-01 through 9999-12-31."
+            )
             continue
         try:
             parsed_date = date.fromisoformat(value)
@@ -457,7 +460,10 @@ def read_date(message, default_today=False):
             and date(1000, 1, 1) <= parsed_date <= date(9999, 12, 31)
         ):
             return value
-        print("Please enter a valid date in YYYY-MM-DD format.")
+        print(
+            "Enter a valid date in YYYY-MM-DD format, from "
+            "1000-01-01 through 9999-12-31."
+        )
 
 
 def show_error_details(error):
@@ -544,10 +550,10 @@ def add_car(connection):
             (model, price, manufacturer, model_year, color, is_electric),
         )
         connection.commit()
-        print("Car added.")
+        print("Car added successfully.")
     except Error as error:
         report_database_error(
-            connection, error, "Could not add car. Check for duplicate model names."
+            connection, error, "Could not add car. Review the database error below."
         )
     finally:
         close_cursor(cursor)
@@ -576,7 +582,7 @@ def update_car(connection):
             "cars",
             "car_id",
             car_id,
-            "Car updated.",
+            "Car updated successfully.",
             "No changes needed.",
             "No car found with that ID.",
         )
@@ -584,7 +590,7 @@ def update_car(connection):
         report_database_error(
             connection,
             error,
-            "Could not update car. Check for duplicate model names.",
+            "Could not update car. Review the database error below.",
         )
     finally:
         close_cursor(cursor)
@@ -608,14 +614,18 @@ def delete_car(connection):
     car_ids = (car[0] for car in cars)
     car_id = read_existing_id("Car ID to delete: ", car_ids)
     if not confirm_delete():
-        print("Delete cancelled.")
+        print("Deletion cancelled.")
         return
     cursor = connection.cursor()
     try:
         # A foreign key blocks deleting a car that still has related entries.
         cursor.execute("DELETE FROM cars WHERE car_id = %s", (car_id,))
         connection.commit()
-        print("Car deleted." if cursor.rowcount else "No car found with that ID.")
+        print(
+            "Car deleted successfully."
+            if cursor.rowcount
+            else "No car found with that ID."
+        )
     except Error as error:
         report_database_error(
             connection,
@@ -690,7 +700,7 @@ def show_records(connection, table):
 
 
 def add_record(connection, table):
-    id_column, date_column, _ = get_record_config(table)
+    id_column, date_column, record_title = get_record_config(table)
     extra_columns = tuple(RECORD_COLUMNS[table])
     cars = show_cars(connection)
     if not cars:
@@ -716,17 +726,20 @@ def add_record(connection, table):
             values,
         )
         connection.commit()
-        print("Record added.")
+        print(f"{record_title} record added successfully.")
     except Error as error:
         report_database_error(
-            connection, error, "Could not add record. Check the car ID and fields."
+            connection,
+            error,
+            f"Could not add the {record_title.lower()} record. "
+            "Review the database error below.",
         )
     finally:
         close_cursor(cursor)
 
 
 def update_record(connection, table):
-    id_column, date_column, _ = get_record_config(table)
+    id_column, date_column, record_title = get_record_config(table)
     extra_columns = tuple(RECORD_COLUMNS[table])
     records = show_records(connection, table)
     if not records:
@@ -765,27 +778,30 @@ def update_record(connection, table):
             table,
             id_column,
             record_id,
-            "Record updated.",
+            f"{record_title} record updated successfully.",
             "No changes needed.",
-            "No record found with that ID.",
+            f"No {record_title.lower()} record found with that ID.",
         )
     except Error as error:
         report_database_error(
-            connection, error, "Could not update record. Check the car ID and fields."
+            connection,
+            error,
+            f"Could not update the {record_title.lower()} record. "
+            "Review the database error below.",
         )
     finally:
         close_cursor(cursor)
 
 
 def delete_record(connection, table):
-    id_column, _, _ = get_record_config(table)
+    id_column, _, record_title = get_record_config(table)
     records = show_records(connection, table)
     if not records:
         return
     record_ids = (record[0] for record in records)
     record_id = read_existing_id("Record ID to delete: ", record_ids)
     if not confirm_delete():
-        print("Delete cancelled.")
+        print("Deletion cancelled.")
         return
     cursor = connection.cursor()
     try:
@@ -794,9 +810,18 @@ def delete_record(connection, table):
             (record_id,),
         )
         connection.commit()
-        print("Record deleted." if cursor.rowcount else "No record found with that ID.")
+        print(
+            f"{record_title} record deleted successfully."
+            if cursor.rowcount
+            else f"No {record_title.lower()} record found with that ID."
+        )
     except Error as error:
-        report_database_error(connection, error, "Could not delete record.")
+        report_database_error(
+            connection,
+            error,
+            f"Could not delete the {record_title.lower()} record. "
+            "Review the database error below.",
+        )
     finally:
         close_cursor(cursor)
 
@@ -872,7 +897,7 @@ def manage_cars(connection):
         if action:
             action(connection)
         else:
-            print("Choose 1, 2, 3, 4, or 0.")
+            print("Invalid option. Enter 1, 2, 3, 4, or 0.")
         pause_for_menu()
 
 
@@ -899,7 +924,7 @@ def manage_records(connection, table):
         elif choice == "4":
             delete_record(connection, table)
         else:
-            print("Choose 1, 2, 3, 4, or 0.")
+            print("Invalid option. Enter 1, 2, 3, 4, or 0.")
         pause_for_menu()
 
 
@@ -932,7 +957,7 @@ def main():
         # Create missing tables on every start; existing data is left unchanged.
         create_tables(connection)
     except (Error, ValueError) as error:
-        print("Could not start the database project.")
+        print("Database setup failed; the application could not start.")
         show_error_details(error)
         print(
             "Check the MySQL settings, connector installation, "
@@ -971,11 +996,11 @@ def main():
                     print("Goodbye.")
                     break
                 else:
-                    print("Choose 1, 2, 3, 4, or 0.")
+                    print("Invalid option. Enter 1, 2, 3, 4, or 0.")
                     pause_for_menu()
             except Error as error:
                 # A failed query returns the user to the menu instead of ending the program.
-                print("Database operation failed.")
+                print("A database operation failed.")
                 show_error_details(error)
                 try:
                     connection.rollback()

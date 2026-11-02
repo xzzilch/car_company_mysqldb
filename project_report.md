@@ -94,7 +94,7 @@ source code and its functions.
 ### Software
 
 - Python 3.8 or newer. The selected `mysql-connector-python` release must
-    support the installed Python version.
+  support the installed Python version.
 - MySQL Server.
 - Python package `mysql-connector-python`.
 
@@ -178,7 +178,7 @@ multiple sales rows, and each row refers back to one car through `car_id`.
 9. Close the connection when the program exits.
 
 The connection and application lifecycle are managed by
-[`connect_to_database()`](car_company.py#L203) and [`main()`](car_company.py#L924).
+[`connect_to_database()`](car_company.py#L203) and [`main()`](car_company.py#L953).
 Car, production, and sales actions use shared functions for validation and SQL
 operations; see the [programming guide](PROGRAMMING_GUIDE.md#application-architecture)
 for the function-by-function explanation.

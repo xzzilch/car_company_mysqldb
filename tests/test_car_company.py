@@ -247,8 +247,13 @@ class InputValidationTests(unittest.TestCase):
             self.assertEqual(car_company.read_date("Date: "), "2026-10-23")
 
     def test_date_rejects_values_before_mysql_date_range(self):
+        output = io.StringIO()
         with patch("builtins.input", side_effect=["0999-12-31", "1000-01-01"]):
-            self.assertEqual(car_company.read_date("Date: "), "1000-01-01")
+            with contextlib.redirect_stdout(output):
+                result = car_company.read_date("Date: ")
+
+        self.assertEqual(result, "1000-01-01")
+        self.assertIn("1000-01-01 through 9999-12-31", output.getvalue())
 
     def test_date_accepts_leap_day_and_mysql_upper_boundary(self):
         with patch("builtins.input", return_value="2024-02-29"):
@@ -401,6 +406,7 @@ class CarOperationTests(unittest.TestCase):
 
     def test_add_car_inserts_all_validated_fields(self):
         connection = FakeWriteConnection()
+        output = io.StringIO()
         details = (
             "City LX",
             Decimal("1250000.00"),
@@ -411,7 +417,7 @@ class CarOperationTests(unittest.TestCase):
         )
 
         with patch("car_company.read_car_details", return_value=details):
-            with contextlib.redirect_stdout(io.StringIO()):
+            with contextlib.redirect_stdout(output):
                 car_company.add_car(connection)
 
         self.assertIn("manufacturer, model_year, color, is_electric", connection.query_cursor.query)
@@ -419,9 +425,11 @@ class CarOperationTests(unittest.TestCase):
         self.assertTrue(connection.committed)
         self.assertFalse(connection.rolled_back)
         self.assertTrue(connection.query_cursor.closed)
+        self.assertIn("Car added successfully.", output.getvalue())
 
     def test_add_production_record_saves_new_fields(self):
         connection = FakeWriteConnection()
+        output = io.StringIO()
 
         with patch("car_company.show_cars", return_value=[(1,)]):
             with patch("car_company.read_existing_id", return_value=1):
@@ -433,7 +441,7 @@ class CarOperationTests(unittest.TestCase):
                             "car_company.read_record_details",
                             return_value=("Night", True),
                         ):
-                            with contextlib.redirect_stdout(io.StringIO()):
+                            with contextlib.redirect_stdout(output):
                                 car_company.add_record(connection, "production")
 
         read_date.assert_called_once_with(
@@ -446,9 +454,11 @@ class CarOperationTests(unittest.TestCase):
             (1, "2026-11-02", 8, "Night", True),
         )
         self.assertTrue(connection.committed)
+        self.assertIn("Production record added successfully.", output.getvalue())
 
     def test_update_sales_record_saves_all_new_fields(self):
         connection = FakeWriteConnection()
+        output = io.StringIO()
 
         with patch(
             "car_company.show_records",
@@ -468,7 +478,7 @@ class CarOperationTests(unittest.TestCase):
                                 "car_company.read_record_details",
                                 return_value=("Online", "Card", 24),
                             ):
-                                with contextlib.redirect_stdout(io.StringIO()):
+                                with contextlib.redirect_stdout(output):
                                     car_company.update_record(connection, "sales")
 
         read_date.assert_called_once_with(
@@ -483,6 +493,7 @@ class CarOperationTests(unittest.TestCase):
             (1, "2026-11-02", 5, "Online", "Card", 24, 3),
         )
         self.assertTrue(connection.committed)
+        self.assertIn("Sales record updated successfully.", output.getvalue())
 
     def test_show_production_records_displays_new_fields(self):
         rows = [(4, 1, "City LX", "2026-11-02", 8, "Night", True)]

@@ -45,6 +45,14 @@ body:
       placeholder: e.g. 3.12
     validations:
       required: true
+  - type: input
+    id: mysql-version
+    attributes:
+      label: MySQL Server version
+      description: Optional; include this if the issue involves a database operation.
+      placeholder: e.g. 8.0
+    validations:
+      required: false
   - type: checkboxes
     id: checks
     attributes:

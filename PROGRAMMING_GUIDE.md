@@ -430,11 +430,11 @@ chapters trace the runtime flow and then follow the source in order.
 ### Important Python constructs
 
 - **Tuples and unpacking:** [`RECORDS`](car_company.py#L40) stores each record type as a tuple. Functions unpack a tuple into named fields, for example `id_column, date_column, title = RECORDS[table]`. This keeps the production and sales workflows shared without duplicating whole functions.
-- **Dictionaries:** `settings` in [`connect_to_database()`](car_company.py#L203) holds connection options by name. `produced` and `sold` in [`show_summary()`](car_company.py#L821) map car IDs to totals, allowing `.get(car_id, 0)` to provide a missing total as zero.
+- **Dictionaries:** `settings` in [`connect_to_database()`](car_company.py#L203) holds connection options by name. `produced` and `sold` in [`show_summary()`](car_company.py#L846) map car IDs to totals, allowing `.get(car_id, 0)` to provide a missing total as zero.
 - **Generator expressions:** expressions such as `(car[0] for car in cars)` pass car IDs to [`read_existing_id()`](car_company.py#L432) without creating another list.
 - **F-strings:** prompts, headings, and SQL statements use f-strings to insert values into text. In SQL, user data still goes through connector placeholders; only fixed identifiers selected from `RECORDS` are put into the SQL text.
 - **`try`, `except`, and `finally`:** `try` contains an operation that may fail, `except` handles a known error, and `finally` runs cleanup such as closing a cursor regardless of success or failure.
-- **The `__main__` guard:** the final [`if __name__ == "__main__"` block](car_company.py#L1003) starts `main()` only when this file is run directly. Importing the module from tests defines its functions without opening the menu.
+- **The `__main__` guard:** the final [`if __name__ == "__main__"` block](car_company.py#L1028) starts `main()` only when this file is run directly. Importing the module from tests defines its functions without opening the menu.
 
 ### Source-code map
 
@@ -446,10 +446,10 @@ These are sections of one Python file, not separate modules. Use the linked defi
 | [Terminal helpers](car_company.py#L67) | Screen clearing, headings, and the pause prompt. |
 | [Database setup](car_company.py#L203) | Connection prompts, database creation, and table definitions. |
 | [Input validation](car_company.py#L310) | Integer ranges, text lengths, yes/no values, price, model, ID, and date checks. |
-| [Car operations](car_company.py#L492) | Select, display, add, update, and delete cars. |
-| [Production and sales operations](car_company.py#L630) | Joined record display and shared record CRUD. |
-| [Summary report](car_company.py#L805) | Group totals and the cars-left calculation. |
-| [Menu and startup flow](car_company.py#L853) | Section menus, main menu, cleanup, and direct execution. |
+| [Car operations](car_company.py#L497) | Select, display, add, update, and delete cars. |
+| [Production and sales operations](car_company.py#L639) | Joined record display and shared record CRUD. |
+| [Summary report](car_company.py#L829) | Group totals and the cars-left calculation. |
+| [Menu and startup flow](car_company.py#L877) | Section menus, main menu, cleanup, and direct execution. |
 
 ### Data passed between functions
 
@@ -478,26 +478,26 @@ The schema is described field-by-field in [Database Tables](#database-tables). T
 - **[`read_existing_id(message, valid_ids)`](car_company.py#L432)** converts the displayed IDs to strings and accepts only an exact listed value. This prevents selecting an ID that was not offered in the current list.
 - **[`read_date(message, default_today=False)`](car_company.py#L442)** accepts exact ISO `YYYY-MM-DD` calendar dates from MySQL's `1000-01-01` through `9999-12-31`. Future dates are valid for planning; new-entry prompts identify whether the value is a production or sale date, and an empty value defaults to today.
 - Car model years accept 1886 through two years ahead of the current year, avoiding nonsensical year values while allowing near-future models.
-- **[`show_error_details(error)`](car_company.py#L463)** converts an exception to text, detects the terminal width with an 80-column fallback, and wraps the message for display.
-- **[`confirm_delete()`](car_company.py#L593)** normalizes the response to lowercase, repeats until the user enters `y` or `n`, and returns a Boolean confirmation.
+- **[`show_error_details(error)`](car_company.py#L469)** converts an exception to text, detects the terminal width with an 80-column fallback, and wraps the message for display.
+- **[`confirm_delete()`](car_company.py#L599)** normalizes the response to lowercase, repeats until the user enters `y` or `n`, and returns a Boolean confirmation.
 
 ### Car operations
 
-- **[`fetch_cars(connection)`](car_company.py#L492)** runs the ordered `SELECT` for all car fields, returns all fetched rows, and closes the cursor in `finally`.
-- **[`show_cars(connection)`](car_company.py#L505)** prints a heading and either an empty-state message or each returned car. It also returns the rows so callers can restrict ID input to visible cars.
-- **[`add_car(connection)`](car_company.py#L535)** collects validated model, price, manufacturer, year, color, and electric status, inserts them with `%s` placeholders, and commits. A connector error is displayed and triggers rollback; the cursor is always closed.
-- **[`update_car(connection)`](car_company.py#L556)** displays cars, validates the selected car ID, gathers replacement values for every car field, and updates the row selected by its primary key. A zero `rowcount` triggers a `SELECT` check so an unchanged car is not reported as missing.
-- **[`delete_car(connection)`](car_company.py#L604)** displays cars, validates the ID, asks for confirmation, then deletes by primary key. A foreign-key error prevents removal if production or sales rows still refer to the car.
+- **[`fetch_cars(connection)`](car_company.py#L498)** runs the ordered `SELECT` for all car fields, returns all fetched rows, and closes the cursor in `finally`.
+- **[`show_cars(connection)`](car_company.py#L511)** prints a heading and either an empty-state message or each returned car. It also returns the rows so callers can restrict ID input to visible cars.
+- **[`add_car(connection)`](car_company.py#L541)** collects validated model, price, manufacturer, year, color, and electric status, inserts them with `%s` placeholders, and commits. A connector error is displayed and triggers rollback; the cursor is always closed.
+- **[`update_car(connection)`](car_company.py#L562)** displays cars, validates the selected car ID, gathers replacement values for every car field, and updates the row selected by its primary key. A zero `rowcount` triggers a `SELECT` check so an unchanged car is not reported as missing.
+- **[`delete_car(connection)`](car_company.py#L610)** displays cars, validates the ID, asks for confirmation, then deletes by primary key. A foreign-key error prevents removal if production or sales rows still refer to the car.
 
 The car operations do not manually generate IDs. MySQL's `AUTO_INCREMENT` supplies them. A model duplicate is rejected by the database's `UNIQUE` rule, and the operation catches the connector error, rolls back, and displays its details.
 
 ### Production and sales operations
 
-- **[`show_records(connection, table)`](car_company.py#L630)** uses the selected fixed `RECORDS` entry to choose table/column names, joins records to `cars` for readable model names, orders by record ID, prints the rows, and returns them for later ID validation.
-- **[`add_record(connection, table)`](car_company.py#L692)** requires at least one car, accepts only a displayed car ID, reads a valid date, quantity, and table-specific extra values, then inserts the row. User values are bound separately from the SQL text.
-- **[`update_record(connection, table)`](car_company.py#L728)** requires an existing record, validates both the record ID and replacement car ID, gathers date, quantity, and all extra values, then updates the selected record. A zero `rowcount` is checked for an unchanged existing row before reporting it missing.
-- **[`delete_record(connection, table)`](car_company.py#L780)** requires an existing record and explicit confirmation before deleting by its record ID.
-- **[`get_totals(connection, table, as_of=None)`](car_company.py#L805)** runs `SUM(quantity)` with `GROUP BY car_id`, filters out records after the supplied date, and converts the returned `(car_id, total)` pairs into a dictionary for quick lookups. The summary captures the date once so production and sales use the same cutoff.
+- **[`show_records(connection, table)`](car_company.py#L640)** uses the selected fixed `RECORDS` entry to choose table/column names, joins records to `cars` for readable model names, orders by record ID, prints the rows, and returns them for later ID validation.
+- **[`add_record(connection, table)`](car_company.py#L702)** requires at least one car, accepts only a displayed car ID, reads a valid date, quantity, and table-specific extra values, then inserts the row. User values are bound separately from the SQL text.
+- **[`update_record(connection, table)`](car_company.py#L741)** requires an existing record, validates both the record ID and replacement car ID, gathers date, quantity, and all extra values, then updates the selected record. A zero `rowcount` is checked for an unchanged existing row before reporting it missing.
+- **[`delete_record(connection, table)`](car_company.py#L796)** requires an existing record and explicit confirmation before deleting by its record ID.
+- **[`get_totals(connection, table, as_of=None)`](car_company.py#L830)** runs `SUM(quantity)` with `GROUP BY car_id`, filters out records after the supplied date, and converts the returned `(car_id, total)` pairs into a dictionary for quick lookups. The summary captures the date once so production and sales use the same cutoff.
 
 The `table` argument to these shared operations must be one of the fixed `RECORDS` keys; it is not free-form user input. This is important because table and column names are interpolated into the SQL statement, while actual user values use placeholders.
 
@@ -511,10 +511,10 @@ values are passed as parameters.
 
 ### Summary and application flow
 
-- **[`show_summary(connection)`](car_company.py#L821)** loads cars and production/sales totals independently, substitutes zero for a missing total, calculates `produced - sold`, and aligns the output columns. Future-dated records are excluded from the current totals; long labels are shortened for display only and negative totals remain visible.
-- **[`manage_cars(connection)`](car_company.py#L853)** redraws the car menu, maps choices 1-4 to view/add/update/delete, pauses after an action, and returns to the main menu on 0.
-- **[`manage_records(connection, table)`](car_company.py#L879)** uses the selected record type's display name, handles the same CRUD choices for production or sales, and returns on 0.
-- **[`main()`](car_company.py#L928)** connects and initializes tables, displays the main menu, routes choices to the correct manager or summary, handles connector and keyboard/EOF errors, rolls back a failed menu operation, and closes the connection in `finally`.
+- **[`show_summary(connection)`](car_company.py#L846)** loads cars and production/sales totals independently, substitutes zero for a missing total, calculates `produced - sold`, and aligns the output columns. Future-dated records are excluded from the current totals; long labels are shortened for display only and negative totals remain visible.
+- **[`manage_cars(connection)`](car_company.py#L878)** redraws the car menu, maps choices 1-4 to view/add/update/delete, pauses after an action, and returns to the main menu on 0.
+- **[`manage_records(connection, table)`](car_company.py#L904)** uses the selected record type's display name, handles the same CRUD choices for production or sales, and returns on 0.
+- **[`main()`](car_company.py#L953)** connects and initializes tables, displays the main menu, routes choices to the correct manager or summary, handles connector and keyboard/EOF errors, rolls back a failed menu operation, and closes the connection in `finally`.
 
 `main()` has two error-handling phases. During startup it catches connection, schema, and user-interruption errors before entering the menu. During normal menu use it catches connector errors, attempts a rollback, and returns to the menu if the connection is still usable. The outer `finally` closes an open connection on normal exit or interruption.
 
@@ -734,7 +734,7 @@ inspect both its row return and captured terminal output.
 
 ## Program Flow
 
-This diagram follows the path through [`main()`](car_company.py#L928). A
+This diagram follows the path through [`main()`](car_company.py#L953). A
 section-menu action returns to that section's menu; choosing `0` returns to the
 main menu. Database operation errors are reported and trigger a rollback
 attempt; because autocommit is enabled, rollback cannot undo an already
@@ -791,7 +791,7 @@ three parts are implemented the way they are before the longer source tour.
 
 ### One database operation, step by step
 
-[`add_car()`](car_company.py#L535) is a compact example of the program's usual database pattern:
+[`add_car()`](car_company.py#L541) is a compact example of the program's usual database pattern:
 
 1. Call [`read_model()`](car_company.py#L382) and [`read_price()`](car_company.py#L356) so values match the table's column rules.
 2. Create a cursor with `connection.cursor()`. A cursor sends SQL and reads query results for one connection.
@@ -800,17 +800,17 @@ three parts are implemented the way they are before the longer source tour.
 5. If the connector raises `Error`, call `connection.rollback()` and show an explanation. With autocommit enabled, rollback cannot undo a statement that MySQL has already committed.
 6. Close the cursor in `finally`, which runs whether the operation succeeds or fails.
 
-Read operations such as [`fetch_cars()`](car_company.py#L492) follow the same cursor/cleanup pattern but call `fetchall()` and do not commit because they do not change data. [`create_tables()`](car_company.py#L247) is different only in that it executes several schema statements before one commit.
+Read operations such as [`fetch_cars()`](car_company.py#L498) follow the same cursor/cleanup pattern but call `fetchall()` and do not commit because they do not change data. [`create_tables()`](car_company.py#L247) is different only in that it executes several schema statements before one commit.
 
 MySQL treats many DDL statements, including `CREATE DATABASE` and `CREATE TABLE`, as implicit-commit operations. The program still calls `commit()` after creating tables, but a later rollback cannot undo a table that MySQL has already created. For normal `INSERT`, `UPDATE`, and `DELETE` operations, autocommit saves each successful statement immediately; the explicit `commit()` calls do not create a larger transaction around multiple statements.
 
 ### How menu choices reach operations
 
-[`main()`](car_company.py#L928) reads a choice and routes to the car manager, production manager, sales manager, summary, or exit. [`manage_cars()`](car_company.py#L853) uses a dictionary from menu numbers to functions, while [`manage_records()`](car_company.py#L879) uses a short `if`/`elif` chain for the shared production and sales actions. Both section menus clear the screen before drawing the next menu and pause after actions so the result remains visible. Option `0` returns to the previous menu; it does not delete data.
+[`main()`](car_company.py#L953) reads a choice and routes to the car manager, production manager, sales manager, summary, or exit. [`manage_cars()`](car_company.py#L878) uses a dictionary from menu numbers to functions, while [`manage_records()`](car_company.py#L904) uses a short `if`/`elif` chain for the shared production and sales actions. Both section menus clear the screen before drawing the next menu and pause after actions so the result remains visible. Option `0` returns to the previous menu; it does not delete data.
 
 ### Why the summary runs separate queries
 
-[`get_totals()`](car_company.py#L805) runs a grouped total for one fixed table. [`show_summary()`](car_company.py#L821) calls it once for production and once for sales, then joins those results in Python by `car_id`. Keeping the two aggregates separate avoids multiplying rows if one car has several production entries and several sales entries. For each car, the displayed result is:
+[`get_totals()`](car_company.py#L830) runs a grouped total for one fixed table. [`show_summary()`](car_company.py#L846) calls it once for production and once for sales, then joins those results in Python by `car_id`. Keeping the two aggregates separate avoids multiplying rows if one car has several production entries and several sales entries. For each car, the displayed result is:
 
 ```text
 Cars left = total produced - total sold
@@ -1146,17 +1146,17 @@ that adding and updating a car behave differently.
 
 ### 7. Error display, rollback, and resource cleanup
 
-[`show_error_details(error)`](car_company.py#L463) converts exception text to
+[`show_error_details(error)`](car_company.py#L469) converts exception text to
 a printable form, then wraps it to the terminal width. It uses a fallback
 width when the terminal size is unavailable.
 
-[`report_database_error(connection, error, message)`](car_company.py#L470)
+[`report_database_error(connection, error, message)`](car_company.py#L476)
 prints a user-facing explanation, shows the database error details, and tries
 to roll back. If rollback itself fails, it reports that second error and
 re-raises it. Re-raising prevents a failed rollback from looking like a
 success to the caller.
 
-[`close_cursor(cursor)`](car_company.py#L482) catches connector errors during
+[`close_cursor(cursor)`](car_company.py#L488) catches connector errors during
 cursor cleanup and reports them. All database functions use it from
 `finally`, so cursor cleanup is attempted after both successful and failed
 queries. `close_connection()` applies a similar cleanup pattern to a database
@@ -1180,12 +1180,12 @@ claiming MySQL caused it.
 
 #### Reading and displaying cars
 
-[`fetch_cars(connection)`](car_company.py#L492) executes a fixed `SELECT` for
+[`fetch_cars(connection)`](car_company.py#L498) executes a fixed `SELECT` for
 all seven car fields, orders by `car_id`, fetches the complete result, and
 returns the row tuples. It closes the cursor in `finally`. It does not print,
 which lets callers reuse the rows for both display and ID choices.
 
-[`show_cars(connection)`](car_company.py#L505) formats these rows into the
+[`show_cars(connection)`](car_company.py#L511) formats these rows into the
 shared terminal table. It returns the original database rows after printing.
 That return value is important: update, delete, and record-entry operations
 use the IDs from the list just displayed. If there are no cars, it prints an
@@ -1193,7 +1193,7 @@ empty-state message and returns an empty list.
 
 #### Adding a car
 
-[`add_car(connection)`](car_company.py#L535) runs this sequence:
+[`add_car(connection)`](car_company.py#L541) runs this sequence:
 
 1. Collect a model, price, manufacturer, year, color, and electric flag.
 2. Create a cursor.
@@ -1210,21 +1210,21 @@ the same time.
 
 #### Updating a car
 
-[`update_car(connection)`](car_company.py#L556) first displays all cars. If no
+[`update_car(connection)`](car_company.py#L562) first displays all cars. If no
 car exists, it returns instead of asking the user for an impossible ID. It
 then accepts only an ID from the displayed list, collects replacement values
 for every editable car field, and updates the row selected by `car_id`.
 
 The update helper is called after the update statement. A connector may
 report `rowcount == 0` when the selected row exists but the submitted values
-are identical to the stored values. [`report_update_result()`](car_company.py#L906)
+are identical to the stored values. [`report_update_result()`](car_company.py#L931)
 therefore runs a parameterized existence query. It reports either “No changes
 needed” or “No car found” rather than confusing the two cases.
 
 #### Deleting a car
 
-[`confirm_delete()`](car_company.py#L593) repeats until the user explicitly
-answers yes or no. [`delete_car(connection)`](car_company.py#L604) will not
+[`confirm_delete()`](car_company.py#L599) repeats until the user explicitly
+answers yes or no. [`delete_car(connection)`](car_company.py#L610) will not
 execute its `DELETE` until the user selects an ID and confirms. The foreign
 keys prevent deletion if production or sales rows still point to the car.
 That constraint protects referential integrity; the application reports the
@@ -1243,7 +1243,7 @@ similar. The fixed record metadata supplies their differences:
 
 #### Viewing joined records
 
-[`show_records(connection, table)`](car_company.py#L630) verifies the table
+[`show_records(connection, table)`](car_company.py#L640) verifies the table
 choice, then builds a `SELECT` from trusted table/column configuration. It
 joins the selected record table to `cars`, allowing the terminal list to
 show the car model next to the stored `car_id`. It orders results by the
@@ -1261,7 +1261,7 @@ rows. It closes its cursor before doing terminal formatting.
 
 #### Adding a record
 
-[`add_record(connection, table)`](car_company.py#L692) first shows cars and
+[`add_record(connection, table)`](car_company.py#L702) first shows cars and
 requires one to exist. It asks for a car ID from that list, the correctly
 named record date, a positive quantity, and the extra values for the chosen
 table. It then creates the column list, a matching count of placeholders, and
@@ -1282,7 +1282,7 @@ attempts rollback, and closes the cursor.
 
 #### Updating a record
 
-[`update_record(connection, table)`](car_company.py#L728) lists the current
+[`update_record(connection, table)`](car_company.py#L741) lists the current
 records first and returns if there are none. It then:
 
 1. Validates the selected record ID against the displayed records.
@@ -1298,7 +1298,7 @@ updated but the quantity is forgotten.
 
 #### Deleting a record
 
-[`delete_record(connection, table)`](car_company.py#L780) requires an existing
+[`delete_record(connection, table)`](car_company.py#L796) requires an existing
 record, validates its ID, asks for confirmation, and deletes only the row
 identified by the selected record ID. It commits and checks `rowcount` to
 report whether the row was removed. It does not cascade-delete a car or rows
@@ -1306,7 +1306,7 @@ from the other record table.
 
 ### 10. Summary calculations and date cutoffs
 
-[`get_totals(connection, table, as_of=None)`](car_company.py#L805) validates
+[`get_totals(connection, table, as_of=None)`](car_company.py#L830) validates
 the record table and uses its configured date column. If no cutoff date is
 provided, it captures today's local date. It then runs a grouped query:
 
@@ -1321,7 +1321,7 @@ The actual date is passed as a connector parameter, not inserted into the SQL
 string. The result is converted to a dictionary like `{car_id: total}`. A car
 without a matching row is absent from that dictionary.
 
-[`show_summary(connection)`](car_company.py#L821) captures the local date once
+[`show_summary(connection)`](car_company.py#L846) captures the local date once
 and passes the same date to both production and sales queries. This avoids a
 midnight boundary where the production query and sales query might otherwise
 use different days. Future-dated entries are plans, so they do not count in
@@ -1342,18 +1342,18 @@ value visible rather than silently clamping it to zero.
 
 ### 11. Menus, application startup, and shutdown
 
-[`manage_cars(connection)`](car_company.py#L853) presents numbered options and
+[`manage_cars(connection)`](car_company.py#L878) presents numbered options and
 maps choices 1 through 4 to the view, add, update, and delete functions. A
 dictionary holds those callable functions, so the choice lookup is short.
 Choice 0 returns to the main menu. An invalid choice prints the allowed range
 and leaves the stored data untouched.
 
-[`manage_records(connection, table)`](car_company.py#L879) presents the same
+[`manage_records(connection, table)`](car_company.py#L904) presents the same
 actions for production or sales. It uses the configured title, but dispatches
 the choice through a short conditional chain because each function needs the
 selected table argument.
 
-[`main()`](car_company.py#L928) owns the application lifetime:
+[`main()`](car_company.py#L953) owns the application lifetime:
 
 1. Start with `connection = None`, so cleanup can test whether a connection
    was successfully created.
@@ -1463,11 +1463,11 @@ the definition if a source link no longer lands exactly on it.
 | How a value is displayed | [`print_table()`](car_company.py#L126) | [`visible_text()`](car_company.py#L91), [`display_width()`](car_company.py#L99), [`fit_cell()`](car_company.py#L109) |
 | Why input is accepted or rejected | The matching `read_*()` validator | [`read_car_details()`](car_company.py#L391) or [`read_record_details()`](car_company.py#L416) |
 | How the database is prepared | [`connect_to_database()`](car_company.py#L203) | [`create_tables()`](car_company.py#L247) |
-| How a car is saved | [`add_car()`](car_company.py#L535) | [`read_car_details()`](car_company.py#L391), then `cars` in [Database Tables](#database-tables) |
-| How a production or sales row is saved | [`add_record()`](car_company.py#L692) | [`get_record_config()`](car_company.py#L409), [`read_record_details()`](car_company.py#L416) |
-| Why an update says “No changes needed” | [`report_update_result()`](car_company.py#L906) | [`update_car()`](car_company.py#L556) or [`update_record()`](car_company.py#L728) |
-| How summary totals are calculated | [`show_summary()`](car_company.py#L821) | [`get_totals()`](car_company.py#L805) |
-| How the program exits cleanly | [`main()`](car_company.py#L928) | [`close_connection()`](car_company.py#L193) and the [main guard](car_company.py#L1003) |
+| How a car is saved | [`add_car()`](car_company.py#L541) | [`read_car_details()`](car_company.py#L391), then `cars` in [Database Tables](#database-tables) |
+| How a production or sales row is saved | [`add_record()`](car_company.py#L702) | [`get_record_config()`](car_company.py#L409), [`read_record_details()`](car_company.py#L416) |
+| Why an update says “No changes needed” | [`report_update_result()`](car_company.py#L931) | [`update_car()`](car_company.py#L562) or [`update_record()`](car_company.py#L741) |
+| How summary totals are calculated | [`show_summary()`](car_company.py#L846) | [`get_totals()`](car_company.py#L830) |
+| How the program exits cleanly | [`main()`](car_company.py#L953) | [`close_connection()`](car_company.py#L193) and the [main guard](car_company.py#L1028) |
 
 ### What a function reference describes
 
@@ -1482,8 +1482,8 @@ For each function, distinguish four things:
 4. **Failure behavior:** invalid user input is generally retried by a
    validator; database failures are handled by the operation or by `main()`.
 
-This distinction explains why a query helper such as [`fetch_cars()`](car_company.py#L492)
-returns rows but does not print, while [`show_cars()`](car_company.py#L505)
+This distinction explains why a query helper such as [`fetch_cars()`](car_company.py#L498)
+returns rows but does not print, while [`show_cars()`](car_company.py#L511)
 prints those rows and also returns them for a later ID choice.
 
 ## Function-by-Function Reference
@@ -1593,7 +1593,7 @@ is closed before the error propagates.
 
 This function returns the database connection. It does not create the tables;
 startup calls [`create_tables()`](car_company.py#L247) immediately afterward.
-Connector errors are allowed to reach [`main()`](car_company.py#L928), where
+Connector errors are allowed to reach [`main()`](car_company.py#L953), where
 startup failures are displayed and the application exits before presenting
 the menu.
 
@@ -1671,12 +1671,12 @@ caller bypasses the menus.
 
 ### Error reporting and resource cleanup
 
-[`show_error_details(error)`](car_company.py#L463) converts exception text
+[`show_error_details(error)`](car_company.py#L469) converts exception text
 through [`visible_text()`](car_company.py#L91) and wraps it to a terminal
 width. The fallback width keeps formatting usable when the terminal cannot
 report its dimensions.
 
-[`report_database_error(connection, error, message)`](car_company.py#L470)
+[`report_database_error(connection, error, message)`](car_company.py#L476)
 prints a context-specific message, then the connector's detail, and attempts
 `rollback()`. If rollback itself fails, that second error is also displayed
 and re-raised. The re-raise matters: callers can distinguish “the operation
@@ -1684,7 +1684,7 @@ failed but cleanup completed” from “cleanup also failed.” Since the
 connection uses autocommit, rollback is an attempt at cleanup; it cannot
 undo a statement MySQL has already committed.
 
-[`close_cursor(cursor)`](car_company.py#L482) centralizes cursor closure and
+[`close_cursor(cursor)`](car_company.py#L488) centralizes cursor closure and
 reports connector errors from `cursor.close()`. It is called from `finally`
 blocks in query functions, so normal query errors do not skip cleanup.
 [`close_connection(connection)`](car_company.py#L193) is the corresponding
@@ -1699,12 +1699,12 @@ interface and later input validation.
 
 | Function | What it does and what it returns |
 | --- | --- |
-| [`fetch_cars(connection)`](car_company.py#L492) | Runs a fixed ordered `SELECT`, fetches all seven columns, closes the cursor, and returns row tuples. It has no display side effect. |
-| [`show_cars(connection)`](car_company.py#L505) | Calls `fetch_cars()`, prints a heading and either an empty-state message or a formatted table, then returns the raw rows for later ID selection. |
-| [`add_car(connection)`](car_company.py#L535) | Gathers a validated car tuple, parameterizes one `INSERT`, commits, and reports success. A connector error is shown with duplicate-model context. |
-| [`update_car(connection)`](car_company.py#L556) | Displays cars, requires a listed ID, gathers complete replacement details, and updates exactly that key. It reports changed, unchanged, or missing status. |
-| [`confirm_delete()`](car_company.py#L593) | Loops until the user explicitly enters `y` or `n`, returning a Boolean. It does not perform deletion itself. |
-| [`delete_car(connection)`](car_company.py#L604) | Requires an existing displayed car and affirmative confirmation before issuing a parameterized delete. A foreign key can reject deletion while activity rows exist. |
+| [`fetch_cars(connection)`](car_company.py#L498) | Runs a fixed ordered `SELECT`, fetches all seven columns, closes the cursor, and returns row tuples. It has no display side effect. |
+| [`show_cars(connection)`](car_company.py#L511) | Calls `fetch_cars()`, prints a heading and either an empty-state message or a formatted table, then returns the raw rows for later ID selection. |
+| [`add_car(connection)`](car_company.py#L541) | Gathers a validated car tuple, parameterizes one `INSERT`, commits, and reports success. A connector error is shown with duplicate-model context. |
+| [`update_car(connection)`](car_company.py#L562) | Displays cars, requires a listed ID, gathers complete replacement details, and updates exactly that key. It reports changed, unchanged, or missing status. |
+| [`confirm_delete()`](car_company.py#L599) | Loops until the user explicitly enters `y` or `n`, returning a Boolean. It does not perform deletion itself. |
+| [`delete_car(connection)`](car_company.py#L610) | Requires an existing displayed car and affirmative confirmation before issuing a parameterized delete. A foreign key can reject deletion while activity rows exist. |
 
 `fetch_cars()` returns a tuple for each row in this order:
 
@@ -1725,7 +1725,7 @@ model after this program checked the list.
 
 For an update, MySQL can report zero changed rows either because the ID does
 not exist or because the submitted values equal the current values.
-[`report_update_result()`](car_company.py#L906) runs a separate existence
+[`report_update_result()`](car_company.py#L931) runs a separate existence
 query to distinguish those cases. A deletion is different: its affected-row
 count directly indicates whether a row was removed. Neither result should be
 assumed from the input list alone, since another client may change the
@@ -1739,12 +1739,12 @@ while the record-specific prompts and labels remain distinct.
 
 | Function | Behavior |
 | --- | --- |
-| [`show_records(connection, table)`](car_company.py#L630) | Checks the record type, joins records to cars for readable model names, displays the result, and returns raw rows for selecting a record ID. |
-| [`add_record(connection, table)`](car_company.py#L692) | Requires at least one car, validates the selected car/date/quantity/extra details, and inserts one record with bound values. |
-| [`update_record(connection, table)`](car_company.py#L728) | Requires an existing record and car, then updates its car link, date, quantity, and all record-specific fields in one statement. |
-| [`delete_record(connection, table)`](car_company.py#L780) | Requires a listed record and explicit confirmation, then deletes only the selected production or sales row. |
+| [`show_records(connection, table)`](car_company.py#L640) | Checks the record type, joins records to cars for readable model names, displays the result, and returns raw rows for selecting a record ID. |
+| [`add_record(connection, table)`](car_company.py#L702) | Requires at least one car, validates the selected car/date/quantity/extra details, and inserts one record with bound values. |
+| [`update_record(connection, table)`](car_company.py#L741) | Requires an existing record and car, then updates its car link, date, quantity, and all record-specific fields in one statement. |
+| [`delete_record(connection, table)`](car_company.py#L796) | Requires a listed record and explicit confirmation, then deletes only the selected production or sales row. |
 
-[`show_records()`](car_company.py#L630) returns rows in this general order:
+[`show_records()`](car_company.py#L640) returns rows in this general order:
 
 ```text
 (record_id, car_id, model, event_date, quantity, extra_values...)
@@ -1755,7 +1755,7 @@ model name without duplicating that name in production or sales storage.
 Boolean extras are converted for display only. The return value remains the
 raw query result because update and delete actions need its record IDs.
 
-[`add_record()`](car_company.py#L692) first shows cars and stops if none
+[`add_record()`](car_company.py#L702) first shows cars and stops if none
 exist. This is a user-friendly guard; the foreign key is still the database
 guarantee that a referenced car exists. Pressing Enter at the add-date prompt
 chooses today's date. The function assembles a column sequence, the same
@@ -1763,40 +1763,40 @@ number of placeholders, and a matching values tuple. Keeping these three
 orders aligned is essential: each placeholder receives the value at the same
 position.
 
-[`update_record()`](car_company.py#L728) does not modify the primary key. It
+[`update_record()`](car_company.py#L741) does not modify the primary key. It
 selects a record by its configured key, validates a replacement car, then
 reads and updates all mutable fields together. This gives one coherent
 statement instead of several partial updates. It uses
-[`report_update_result()`](car_company.py#L906) to handle unchanged values.
+[`report_update_result()`](car_company.py#L931) to handle unchanged values.
 
-[`delete_record()`](car_company.py#L780) is intentionally narrow. It removes
+[`delete_record()`](car_company.py#L796) is intentionally narrow. It removes
 only the chosen record, not its car and not records in the other table. The
 confirmation loop is separate from SQL execution, which makes the destructive
 step easy to review and test.
 
 ### Summary and menu functions
 
-[`get_totals(connection, table, as_of=None)`](car_company.py#L805) is a
+[`get_totals(connection, table, as_of=None)`](car_company.py#L830) is a
 query helper. It checks the table through `get_record_config()`, defaults
 the date cutoff to today's local date, then returns a dictionary mapping
 each car ID to the sum of qualifying quantities. The database can return no
 row for a car with no activity; `show_summary()` supplies zero for that
 missing dictionary entry.
 
-[`show_summary(connection)`](car_company.py#L821) fetches cars once, captures
+[`show_summary(connection)`](car_company.py#L846) fetches cars once, captures
 one cutoff date, obtains production and sales totals separately, then
 calculates `produced - sold` for every car. A car with no entries remains
 visible. Negative results are preserved because the application reports
 recorded arithmetic; it does not enforce an inventory policy.
 
-[`manage_cars(connection)`](car_company.py#L853) maps choices to car
-functions with a dictionary. [`manage_records(connection, table)`](car_company.py#L879)
+[`manage_cars(connection)`](car_company.py#L878) maps choices to car
+functions with a dictionary. [`manage_records(connection, table)`](car_company.py#L904)
 uses a conditional chain because each action needs the `table` argument.
 Both loops clear the terminal where appropriate, redraw a heading, read a
 choice, show a validation message for unsupported choices, and pause after
 the action. The `0` choice returns from the section manager to its caller.
 
-[`report_update_result(...)`](car_company.py#L906) centralizes the
+[`report_update_result(...)`](car_company.py#L931) centralizes the
 changed/unchanged/missing distinction. Its arguments include the messages
 because cars and operational records should report different nouns while
 using identical result logic. It reads `cursor.rowcount`; when that is zero,
@@ -1804,7 +1804,7 @@ it runs a parameterized `SELECT 1` for the target key and calls `fetchone()`.
 This function relies on trusted table and column names supplied by the
 calling operation.
 
-[`main()`](car_company.py#L928) coordinates setup, the main menu, operation
+[`main()`](car_company.py#L953) coordinates setup, the main menu, operation
 dispatch, outer error handling, and shutdown. It owns the long-lived
 connection and passes it into submenus. A startup failure prevents entry to
 the menu; a recoverable connector error during menu use is shown and returns
@@ -1812,7 +1812,7 @@ control to the user. If rollback fails, the loop exits because the connection
 cannot be assumed usable. Keyboard interruption and end-of-file input are
 treated as requests to leave, and `finally` performs connection cleanup.
 
-The [main guard](car_company.py#L1003) is the boundary between importing and
+The [main guard](car_company.py#L1028) is the boundary between importing and
 running. It lets unit tests import the functions without connecting to
 MySQL, while `python car_company.py` starts the interactive application.
 
@@ -1871,40 +1871,40 @@ startup adding a field after the first startup's `SHOW COLUMNS` query.
 
 | Function | Inputs and return | Effects and failure behavior |
 | --- | --- | --- |
-| [`show_error_details(error)`](car_company.py#L463) | An exception or printable value; returns `None`. | Escapes terminal controls and wraps the detail to terminal width. It displays errors but does not log or handle them. |
-| [`report_database_error(connection, error, message)`](car_company.py#L470) | Connection, original connector error, and contextual message; returns `None` if rollback succeeds. | Prints context and error detail, then attempts rollback. If rollback raises a connector error, it reports and re-raises that rollback error. Autocommit means rollback cannot undo a write already committed. |
-| [`close_cursor(cursor)`](car_company.py#L482) | A connector cursor; returns `None`. | Attempts closure and reports connector cleanup errors without re-raising. Query functions call it from `finally`. |
+| [`show_error_details(error)`](car_company.py#L469) | An exception or printable value; returns `None`. | Escapes terminal controls and wraps the detail to terminal width. It displays errors but does not log or handle them. |
+| [`report_database_error(connection, error, message)`](car_company.py#L476) | Connection, original connector error, and contextual message; returns `None` if rollback succeeds. | Prints context and error detail, then attempts rollback. If rollback raises a connector error, it reports and re-raises that rollback error. Autocommit means rollback cannot undo a write already committed. |
+| [`close_cursor(cursor)`](car_company.py#L488) | A connector cursor; returns `None`. | Attempts closure and reports connector cleanup errors without re-raising. Query functions call it from `finally`. |
 
 ### Car queries and mutations
 
 | Function | Inputs and return | Effects and failure behavior |
 | --- | --- | --- |
-| [`fetch_cars(connection)`](car_company.py#L492) | Connection; returns rows shaped `(car_id, model, price, manufacturer, model_year, color, is_electric)`. | Executes an ordered read and closes its cursor. It does not print or commit; query errors propagate. |
-| [`show_cars(connection)`](car_company.py#L505) | Connection; returns the original car rows. | Prints a heading and either an empty-state message or table. Boolean values are changed only in the display copy; query errors propagate. |
-| [`add_car(connection)`](car_company.py#L535) | Connection; returns `None`. | Prompts for validated details, performs a parameterized insert, commits, and prints success. Connector errors are reported and rolled back; cursor cleanup runs in `finally`. |
-| [`update_car(connection)`](car_company.py#L556) | Connection; returns `None`. | Displays cars, requires a displayed ID, gathers all replacement fields, and updates by primary key. Reports changed/unchanged/missing status; connector errors are reported and rolled back. |
-| [`confirm_delete()`](car_company.py#L593) | No arguments; returns a Boolean. | Repeats until the user enters case-insensitive `y` or `n`; it does not execute SQL. |
-| [`delete_car(connection)`](car_company.py#L604) | Connection; returns `None`. | Requires a displayed car ID and affirmative confirmation, then deletes by ID. Reports affected-row status; foreign-key and other connector errors are reported and rolled back. |
+| [`fetch_cars(connection)`](car_company.py#L498) | Connection; returns rows shaped `(car_id, model, price, manufacturer, model_year, color, is_electric)`. | Executes an ordered read and closes its cursor. It does not print or commit; query errors propagate. |
+| [`show_cars(connection)`](car_company.py#L511) | Connection; returns the original car rows. | Prints a heading and either an empty-state message or table. Boolean values are changed only in the display copy; query errors propagate. |
+| [`add_car(connection)`](car_company.py#L541) | Connection; returns `None`. | Prompts for validated details, performs a parameterized insert, commits, and prints success. Connector errors are reported and rolled back; cursor cleanup runs in `finally`. |
+| [`update_car(connection)`](car_company.py#L562) | Connection; returns `None`. | Displays cars, requires a displayed ID, gathers all replacement fields, and updates by primary key. Reports changed/unchanged/missing status; connector errors are reported and rolled back. |
+| [`confirm_delete()`](car_company.py#L599) | No arguments; returns a Boolean. | Repeats until the user enters case-insensitive `y` or `n`; it does not execute SQL. |
+| [`delete_car(connection)`](car_company.py#L610) | Connection; returns `None`. | Requires a displayed car ID and affirmative confirmation, then deletes by ID. Reports affected-row status; foreign-key and other connector errors are reported and rolled back. |
 
 ### Production and sales function contracts
 
 | Function | Inputs and return | Effects and failure behavior |
 | --- | --- | --- |
-| [`show_records(connection, table)`](car_company.py#L630) | Connection and supported record key; returns joined rows `(record_id, car_id, model, date, quantity, extras...)`. | Joins records to cars, orders by record ID, closes the cursor, and prints rows. Unsupported table names raise `ValueError`; connector read errors propagate. |
-| [`add_record(connection, table)`](car_company.py#L692) | Connection and supported record key; returns `None`. | Stops with a message if there are no cars; otherwise validates a visible car ID, date, quantity, and type-specific details, then inserts one parameterized row. Connector errors are reported and rolled back; cursor cleanup is guaranteed. |
-| [`update_record(connection, table)`](car_company.py#L728) | Connection and supported record key; returns `None`. | Requires a displayed record and car, gathers all replacement values before writing, and updates mutable fields in one statement. Uses the shared update-result check; connector errors are reported and rolled back. |
-| [`delete_record(connection, table)`](car_company.py#L780) | Connection and supported record key; returns `None`. | Requires a displayed record ID and confirmation, deletes only that record, and reports affected-row status. It does not delete the car or records in the other table. |
+| [`show_records(connection, table)`](car_company.py#L640) | Connection and supported record key; returns joined rows `(record_id, car_id, model, date, quantity, extras...)`. | Joins records to cars, orders by record ID, closes the cursor, and prints rows. Unsupported table names raise `ValueError`; connector read errors propagate. |
+| [`add_record(connection, table)`](car_company.py#L702) | Connection and supported record key; returns `None`. | Stops with a message if there are no cars; otherwise validates a visible car ID, date, quantity, and type-specific details, then inserts one parameterized row. Connector errors are reported and rolled back; cursor cleanup is guaranteed. |
+| [`update_record(connection, table)`](car_company.py#L741) | Connection and supported record key; returns `None`. | Requires a displayed record and car, gathers all replacement values before writing, and updates mutable fields in one statement. Uses the shared update-result check; connector errors are reported and rolled back. |
+| [`delete_record(connection, table)`](car_company.py#L796) | Connection and supported record key; returns `None`. | Requires a displayed record ID and confirmation, deletes only that record, and reports affected-row status. It does not delete the car or records in the other table. |
 
 ### Summary and menu flow
 
 | Function | Inputs and return | Effects and failure behavior |
 | --- | --- | --- |
-| [`get_totals(connection, table, as_of=None)`](car_company.py#L805) | Connection, supported table key, and optional cutoff `date`; returns `{car_id: summed_quantity}`. | Runs a parameterized grouped query and closes its cursor. Invalid table keys raise `ValueError`; connector errors propagate. Cars without qualifying rows are absent from the mapping. |
-| [`show_summary(connection)`](car_company.py#L821) | Connection; returns `None`. | Captures one local date, fetches cars and both totals, then prints produced, sold, and produced-minus-sold. Missing totals display as zero; negative balances remain visible. Read errors propagate to the menu-level handler. |
-| [`manage_cars(connection)`](car_company.py#L853) | Connection; returns `None` when the user chooses Back. | Loops over car actions, pauses after each, and returns on 0. Connector errors are not caught here; they reach `main()`. |
-| [`manage_records(connection, table)`](car_company.py#L879) | Connection and supported record key; returns `None` when the user chooses Back. | Loops over the selected record actions and pauses after each. Unsupported table names raise `ValueError`; connector errors propagate to `main()`. |
-| [`report_update_result(cursor, table, id_column, item_id, updated_message, unchanged_message, missing_message)`](car_company.py#L906) | Cursor, trusted table/key identifiers, ID, and three messages; returns `None`. | Reports changed rows from `rowcount`; for zero, runs a parameterized `SELECT 1` and distinguishes unchanged from missing using `fetchone()`. Connector errors propagate; identifiers must come from trusted program configuration. |
-| [`main()`](car_company.py#L928) | No arguments; returns `None`. | Owns startup, the long-lived connection, menus, error handling, interruption handling, and final cleanup. Startup failures stop before the menu; menu connector errors trigger rollback and recovery unless rollback fails. Keyboard interruption and end-of-file exit cleanly. |
+| [`get_totals(connection, table, as_of=None)`](car_company.py#L830) | Connection, supported table key, and optional cutoff `date`; returns `{car_id: summed_quantity}`. | Runs a parameterized grouped query and closes its cursor. Invalid table keys raise `ValueError`; connector errors propagate. Cars without qualifying rows are absent from the mapping. |
+| [`show_summary(connection)`](car_company.py#L846) | Connection; returns `None`. | Captures one local date, fetches cars and both totals, then prints produced, sold, and produced-minus-sold. Missing totals display as zero; negative balances remain visible. Read errors propagate to the menu-level handler. |
+| [`manage_cars(connection)`](car_company.py#L878) | Connection; returns `None` when the user chooses Back. | Loops over car actions, pauses after each, and returns on 0. Connector errors are not caught here; they reach `main()`. |
+| [`manage_records(connection, table)`](car_company.py#L904) | Connection and supported record key; returns `None` when the user chooses Back. | Loops over the selected record actions and pauses after each. Unsupported table names raise `ValueError`; connector errors propagate to `main()`. |
+| [`report_update_result(cursor, table, id_column, item_id, updated_message, unchanged_message, missing_message)`](car_company.py#L931) | Cursor, trusted table/key identifiers, ID, and three messages; returns `None`. | Reports changed rows from `rowcount`; for zero, runs a parameterized `SELECT 1` and distinguishes unchanged from missing using `fetchone()`. Connector errors propagate; identifiers must come from trusted program configuration. |
+| [`main()`](car_company.py#L953) | No arguments; returns `None`. | Owns startup, the long-lived connection, menus, error handling, interruption handling, and final cleanup. Startup failures stop before the menu; menu connector errors trigger rollback and recovery unless rollback fails. Keyboard interruption and end-of-file exit cleanly. |
 
 ## Variable Reference
 
@@ -2118,9 +2118,9 @@ reviewing every consumer that unpacks or indexes the row.
 
 | Query/helper | Row or value shape | Main consumer |
 | --- | --- | --- |
-| [`fetch_cars()`](car_company.py#L492) | `(car_id, model, price, manufacturer, model_year, color, is_electric)` | [`show_cars()`](car_company.py#L505), [`show_summary()`](car_company.py#L821), and ID-selection workflows. |
-| [`show_records()`](car_company.py#L630) | `(record_id, car_id, model, date, quantity, extras...)` | Record update/delete workflows and display formatting. |
-| [`get_totals()`](car_company.py#L805) | `{car_id: quantity_sum}` | [`show_summary()`](car_company.py#L821). |
+| [`fetch_cars()`](car_company.py#L498) | `(car_id, model, price, manufacturer, model_year, color, is_electric)` | [`show_cars()`](car_company.py#L511), [`show_summary()`](car_company.py#L846), and ID-selection workflows. |
+| [`show_records()`](car_company.py#L640) | `(record_id, car_id, model, date, quantity, extras...)` | Record update/delete workflows and display formatting. |
+| [`get_totals()`](car_company.py#L830) | `{car_id: quantity_sum}` | [`show_summary()`](car_company.py#L846). |
 | [`read_car_details()`](car_company.py#L391) | `(model, price, manufacturer, model_year, color, is_electric)` | Car insert and update. |
 | [`read_record_details()`](car_company.py#L416) | Production: `(shift, quality_checked)`; sales: `(sales_channel, payment_method, warranty_months)` | Record insert and update. |
 
@@ -2154,7 +2154,7 @@ which are fixed by the program. If a new supported table is added, validate
 its key through [`get_record_config()`](car_company.py#L409) and keep the
 identifier map internal; never pass raw user text as an identifier.
 
-The query helper [`report_update_result()`](car_company.py#L906) also builds
+The query helper [`report_update_result()`](car_company.py#L931) also builds
 a table/key existence query. Its callers pass the fixed identifiers used by
 the app. Values such as `item_id` remain a `%s` parameter.
 
@@ -2582,7 +2582,7 @@ user action.
 
 1. Python evaluates imports and configuration. No menu or database request
    occurs just because the module has been imported.
-2. The main guard calls [`main()`](car_company.py#L928) only when the file is
+2. The main guard calls [`main()`](car_company.py#L953) only when the file is
    run as the script.
 3. `main()` calls [`connect_to_database()`](car_company.py#L203). The user
    enters connection settings; the password uses `getpass`.
@@ -2603,8 +2603,8 @@ helps separate a network refusal from a permission problem.
 ### Adding a car: end-to-end walkthrough
 
 1. The main menu passes the shared connection into
-   [`manage_cars()`](car_company.py#L853).
-2. Choosing “Add a car” invokes [`add_car()`](car_company.py#L535).
+   [`manage_cars()`](car_company.py#L878).
+2. Choosing “Add a car” invokes [`add_car()`](car_company.py#L541).
 3. [`read_car_details()`](car_company.py#L391) calls the model, price, text,
    integer-range, and yes/no validators in a fixed order.
 4. The returned values are unpacked into local names. Their order matches
@@ -2632,8 +2632,8 @@ event date and extra fields:
 | Record details | Shift and quality-check answer | Channel, payment method, warranty months |
 | Key/date columns | `production_id`, `production_date` | `sale_id`, `sale_date` |
 
-Both use [`add_record()`](car_company.py#L692). It first calls
-[`show_cars()`](car_company.py#L505). An empty car list ends the operation
+Both use [`add_record()`](car_company.py#L702). It first calls
+[`show_cars()`](car_company.py#L511). An empty car list ends the operation
 with a helpful message. Otherwise, the ID validator restricts the choice to
 the displayed list; the database foreign key remains the final check.
 
@@ -2681,9 +2681,9 @@ the selected record is removed.
 
 ### Producing the summary
 
-[`show_summary()`](car_company.py#L821) fetches all cars first so that cars
+[`show_summary()`](car_company.py#L846) fetches all cars first so that cars
 with no production or sales still appear. It captures the current local date
-once and passes it to both [`get_totals()`](car_company.py#L805) calls.
+once and passes it to both [`get_totals()`](car_company.py#L830) calls.
 Each query sums quantities grouped by `car_id` for rows whose event date is
 on or before the cutoff.
 
@@ -3414,10 +3414,10 @@ Use this sequence for a new car, production, or sales field:
    or [`read_record_details()`](car_company.py#L416).
 6. **Update SQL and parameter order** in add/update operations. Keep column
    names, placeholders, and values aligned.
-7. **Update selected columns and tuple consumers** in [`fetch_cars()`](car_company.py#L492)
-   or [`show_records()`](car_company.py#L630).
+7. **Update selected columns and tuple consumers** in [`fetch_cars()`](car_company.py#L498)
+   or [`show_records()`](car_company.py#L640).
 8. **Update visible table headers and output formatting** in
-   [`show_cars()`](car_company.py#L505) or [`show_records()`](car_company.py#L630).
+   [`show_cars()`](car_company.py#L511) or [`show_records()`](car_company.py#L640).
 9. **Add tests** for accepted/rejected boundaries, SQL parameters, display,
    and migration from the old layout.
 10. **Update the schema table and guide references** so the documentation
@@ -3443,8 +3443,8 @@ If it fits the shared model, coordinate these locations:
 - Create its table and include it in the migration loop in
   [`create_tables()`](car_company.py#L247).
 - Add record-specific prompts to [`read_record_details()`](car_company.py#L416).
-- Route a menu choice in [`main()`](car_company.py#L928).
-- Extend any display labels in [`show_records()`](car_company.py#L630).
+- Route a menu choice in [`main()`](car_company.py#L953).
+- Extend any display labels in [`show_records()`](car_company.py#L640).
 - Add schema, prompt, operation, summary, and failure-path tests.
 
 Do not add raw user-selected table names. The record type should be chosen by
@@ -3471,7 +3471,7 @@ should affect only the temporary display string.
 
 ### Maintaining source references
 
-This guide uses links such as `[add_car()](car_company.py#L535)` to identify
+This guide uses links such as `[add_car()](car_company.py#L541)` to identify
 definitions. When code is inserted above those functions, line fragments can
 become stale. After a substantial code edit:
 

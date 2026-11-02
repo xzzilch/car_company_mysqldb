@@ -169,8 +169,8 @@ create the project tables when they are missing.
 
 ## Menu Guide
 
-The main menu opens **Manage cars**, **Manage production records**, or
-**Manage sales records**, displays the summary, or exits. Each data section
+The main menu opens **Manage cars**, **Manage production**, or
+**Manage sales**, displays the summary, or exits. Each data section
 provides these actions:
 
 - **1, View:** displays the saved rows.
@@ -233,17 +233,16 @@ $ python car_company.py
   > Model year (1886-[current year + 2]): 2026
   > Color: Blue
   > Electric? (y/n): n
-Car added.
+Car added successfully.
 ```
 
 ### Record Production
 
-Continuing the same run, choose `0` to return to the main menu, then choose
-`2` to manage production and `2` again to add a record:
+Continuing the same run, press Enter to continue, choose `0` to return to the
+main menu, then choose `2` to manage production and `2` again to add a record:
 
 ```text
-Choose an option: 0
-
+  > Press Enter to continue... [press Enter]
   > Choose an option: 0
   > Choose an option: 2
 
@@ -265,17 +264,16 @@ ID | Model   |          Price | Manufacturer | Year | Color | Electric
   > Quantity: 120
   > Production shift: Day
   > Quality checked? (y/n): y
-Record added.
+Production record added successfully.
 ```
 
 ### Record a Sale
 
-Return to the main menu with `0`, choose **Manage sales records**, and add a
-record. This example uses the same car:
+Press Enter to continue, choose `0` to return to the main menu, choose
+**Manage sales**, then add a record. This example uses the same car:
 
 ```text
-Choose an option: 0
-
+  > Press Enter to continue... [press Enter]
   > Choose an option: 0
   > Choose an option: 3
 
@@ -298,17 +296,16 @@ ID | Model   |          Price | Manufacturer | Year | Color | Electric
   > Sales channel: Dealer
   > Payment method: Bank transfer
   > Warranty months (0-65535): 24
-Record added.
+Sales record added successfully.
 ```
 
 ### View the Summary
 
-Return to the main menu with `0`, then select the summary. With the sample
-production and sales records above, the output is:
+Press Enter to continue, choose `0` to return to the main menu, then select
+the summary. With the sample production and sales records above, the output is:
 
 ```text
-Choose an option: 0
-
+  > Press Enter to continue... [press Enter]
   > Choose an option: 0
   > Choose an option: 4
 
